@@ -1,0 +1,18 @@
+.header { 
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #414141;
+    z-index: 1000;
+    background-color: hsla(0, 0%, 0%, 0.5);
+    backdrop-filter: blur(10px);
+    
+    &_logo {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #fff;
+    }
+}
