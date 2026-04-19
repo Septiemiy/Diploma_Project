@@ -1,18 +1,69 @@
+$roboto: 'Roboto', sans-serif;
+
 .header { 
+    display: flex;
+    align-items: center;
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     padding-top: 1rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid #414141;
+    border-bottom: 1px solid hsl(0, 0%, 32%);;
     z-index: 1000;
     background-color: hsla(0, 0%, 0%, 0.5);
     backdrop-filter: blur(10px);
     
     &_logo {
+        font-family: $roboto;
         font-size: 1.2rem;
         font-weight: bold;
-        color: #fff;
+        color: hsl(0, 0%, 100%);
+    }    
+
+    &_logo_container {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        margin-left: 7%;   
+    }
+
+    &_actions {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-right: 7%;
+
+        &_signin {
+            padding: 0.4rem 1rem;
+            background-color: transparent;
+            border: none;
+            color: hsl(0, 0%, 100%);
+            cursor: pointer;
+            font-family: $roboto;
+            font-size: 0.9rem;
+            transition: all 0.25s ease;
+
+            &:hover {
+                background-color: hsla(0, 0%, 20%, 0.5);
+                color: hsl(72 100% 50%);
+            }
+        }
+
+        &_signup {
+            padding: 0.4rem 1.2rem;
+            background-color: hsl(72 100% 50%);
+            font-family: $roboto;
+            font-size: 0.9rem;
+            border: none;
+            color: hsl(0, 0%, 0%);
+            cursor: pointer;
+            transition: all 0.25s ease;
+
+            &:hover {
+                background-color: hsla(72, 100%, 50%, 0.85);
+            }
+        }
     }
 }

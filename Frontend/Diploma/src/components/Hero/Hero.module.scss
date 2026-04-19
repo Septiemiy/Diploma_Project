@@ -1,0 +1,55 @@
+$roboto: 'Roboto', sans-serif;
+
+.hero {
+    font-family: $roboto;
+    position: relative;
+    height: 100vh;
+    background: 
+        linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9)), 
+        url('../../assests/imgs/hero.png');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+
+    &_content {
+        color: #fff;
+        position: absolute;
+        top: 18%;
+        left: 25%;
+        animation: titleSlideIn 0.7s ease-out forwards;
+    }
+
+    &_eyebrow {
+        display: inline-block;
+        color: hsl(72 100% 50%);
+        font-size: 0.75rem;
+        font-weight: bold;
+        border: 1px solid hsl(72 100% 50%);
+        padding: 0.3rem 0.5rem;
+    }
+
+    &_title {
+        margin-top: 1rem;
+        display: flex;
+        flex-direction: column;
+        font-size: 3.5rem;
+        font-weight: bold;
+        line-height: 1.1;
+        letter-spacing: -0.04em;
+
+        &_highlight {
+            color: hsl(72 100% 50%);
+        }
+    }
+}
+
+@keyframes titleSlideIn {
+    from {
+        transform: translateX(-30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
