@@ -5,7 +5,10 @@ $roboto: 'Roboto', sans-serif;
     position: relative;
     height: 100vh;
     background: 
-        linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9)), 
+        linear-gradient(
+            to bottom,
+            rgba(5, 5, 5, 0.9) 60%, 
+            rgba(3, 3, 3, 1) 100%), 
         url('../../assests/imgs/hero.png');
     background-position: center;
     background-repeat: no-repeat;
@@ -15,7 +18,7 @@ $roboto: 'Roboto', sans-serif;
         color: #fff;
         position: absolute;
         top: 18%;
-        left: 25%;
+        left: 30%;
         animation: titleSlideIn 0.7s ease-out forwards;
     }
 
@@ -38,6 +41,67 @@ $roboto: 'Roboto', sans-serif;
         letter-spacing: -0.04em;
 
         &_highlight {
+            color: hsl(72 100% 50%);
+        }
+    }
+
+    &_subtitle {
+        font-size: 1.2rem;
+        letter-spacing: normal;
+        margin-top: 1rem;
+        line-height: 1.6;
+        color: hsla(0, 0%, 100%, 0.712);
+        font-weight: 300;
+    }
+
+    &_actions {
+        display: flex;
+        gap: 0.7rem;
+        margin-top: 2rem;
+    }
+
+    &_button_primary{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        padding: 0.7rem 1.2rem;
+        background-color: hsl(72 100% 50%);
+        font-family: $roboto;
+        border: none;
+        color: hsl(0, 0%, 0%);
+        cursor: pointer;
+        transition: all 0.25s ease;
+
+        & svg {
+            display: block;
+        }
+
+        & span {
+            transition: transform 0.25s ease-in-out;
+        }
+
+        &:hover {
+            background-color: hsla(72, 100%, 50%, 0.85);
+            
+            span {
+                transform: translateX(5px);
+            }
+        }
+    }
+
+    &_button_secondary {
+        padding: 0.6rem 1rem;
+        background-color: transparent;
+        border: 0.3px solid hsla(0, 0%, 30%, 0.6);
+        color: hsl(0, 0%, 100%);
+        cursor: pointer;
+        font-family: $roboto;
+        font-size: 0.9rem;
+        transition: all 0.25s ease;
+
+        &:hover {
+            background-color: hsla(0, 0%, 20%, 0.5);
             color: hsl(72 100% 50%);
         }
     }

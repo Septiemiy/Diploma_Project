@@ -9,10 +9,10 @@ $roboto: 'Roboto', sans-serif;
     width: 100vw;
     padding-top: 1rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid hsl(0, 0%, 32%);;
+    border-bottom: 1px solid hsla(0, 0%, 32%, 0.5);
     z-index: 1000;
     background-color: hsla(0, 0%, 0%, 0.5);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(15px);
     
     &_logo {
         font-family: $roboto;
