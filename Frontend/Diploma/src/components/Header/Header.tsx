@@ -8,7 +8,7 @@ const Header = () => {
     <div className={styles.header}>
       <div className={styles.header_logo_container}>
         <MdOutlineVideocam color="#ccff00" size={25} />
-        <p className={styles.header_logo}>VidPriority</p> 
+        <p className={styles.header_logo}>VidQueue</p> 
       </div>
       <div className={styles.header_actions}>
         <button className={styles.header_actions_signin}>Sign In</button>

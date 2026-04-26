@@ -1,7 +1,4 @@
-$roboto: 'Roboto', sans-serif;
-
 .hero {
-    font-family: $roboto;
     position: relative;
     height: 100vh;
     background: 
@@ -67,7 +64,6 @@ $roboto: 'Roboto', sans-serif;
         gap: 1rem;
         padding: 0.7rem 1.2rem;
         background-color: hsl(72 100% 50%);
-        font-family: $roboto;
         border: none;
         color: hsl(0, 0%, 0%);
         cursor: pointer;
@@ -96,7 +92,6 @@ $roboto: 'Roboto', sans-serif;
         border: 0.3px solid hsla(0, 0%, 30%, 0.6);
         color: hsl(0, 0%, 100%);
         cursor: pointer;
-        font-family: $roboto;
         font-size: 0.9rem;
         transition: all 0.25s ease;
 

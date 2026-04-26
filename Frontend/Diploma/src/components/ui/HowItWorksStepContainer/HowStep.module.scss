@@ -1,0 +1,64 @@
+$font-family: 'JetBrains Mono', monospace;
+
+.step_container {
+
+    .step_number {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: $font-family;
+        font-size: 2rem;
+        font-weight: bold;
+        color: hsla(72, 100%, 50%, 0.5);
+        
+        span {
+            font-size: 1.2rem;
+            color: hsla(0, 0%, 70%);
+            font-weight: 100;
+            transform: translateX(7px);
+        }
+    }
+
+    .step_content {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid hsl(240, 3.5%, 20%, 0.5);
+        padding: 1.5rem;
+        background-color: hsl(240, 3.5%, 16%, 0.5);
+        margin-top: 1rem;
+
+
+        .icon {
+            margin-left: -2.8px;
+        }
+
+        .title {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+
+        .description {
+            font-size: 0.9rem;
+            margin-top: 0.8rem;
+            font-weight: 320;
+            color: hsla(0, 0%, 80%, 0.8);
+        }
+
+    }
+
+    .step_number,
+    .step_content {
+        transition: all 0.25s ease;
+    }
+
+    &:hover {
+        .step_number {
+            color: hsla(72, 100%, 50%);
+        }
+
+        .step_content {
+            border-color: hsla(72, 100%, 50%, 0.5)
+        }
+    }
+}

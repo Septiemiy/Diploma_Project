@@ -2,7 +2,12 @@ import { GoArrowRight } from "react-icons/go";
 
 import styles  from './Hero.module.scss'
 
-const Hero = () => {
+interface Props {
+  onHowItWorksClick: () => void;
+}
+
+const Hero = ({ onHowItWorksClick }: Props) => {
+
   return (
     <section className={styles.hero}>
         <div className={styles.hero_content}>
@@ -15,7 +20,12 @@ const Hero = () => {
             </div>
             <div className={styles.hero_actions}>
               <button className={styles.hero_button_primary}>Order a Video <span><GoArrowRight size={20} /></span></button>
-              <button className={styles.hero_button_secondary}>How It Works</button>
+              <button 
+                className={styles.hero_button_secondary} 
+                onClick={onHowItWorksClick}
+              >
+                How It Works
+              </button>
             </div>
         </div>
         
