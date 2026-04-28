@@ -1,6 +1,7 @@
 $font-family: 'JetBrains Mono', monospace;
 
 .step_container {
+    flex: 1;
 
     .step_number {
         display: flex;
@@ -22,6 +23,8 @@ $font-family: 'JetBrains Mono', monospace;
     .step_content {
         display: flex;
         flex-direction: column;
+        height: 73%;
+        min-height: 73%;
         border: 1px solid hsl(240, 3.5%, 20%, 0.5);
         padding: 1.5rem;
         background-color: hsl(240, 3.5%, 16%, 0.5);

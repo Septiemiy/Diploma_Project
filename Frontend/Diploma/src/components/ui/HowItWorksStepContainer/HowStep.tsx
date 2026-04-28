@@ -4,6 +4,7 @@ import styles from './HowStep.module.scss';
 
 interface Props {
     stepNumber?: string;
+    isArrowNeed?: boolean;
     Icon?: IconType;
     color?: string;
     size?: number;
@@ -11,11 +12,11 @@ interface Props {
     description: string;
 }
 
-const HowStep = ({ stepNumber, Icon, color, size, title, description }: Props) => {
+const HowStep = ({ stepNumber, isArrowNeed, Icon, color, size, title, description }: Props) => {
   return (
     <>
         <div className={styles.step_container}>
-          <div className={styles.step_number}>{stepNumber}<span>&gt;</span></div>
+          <div className={styles.step_number}>{stepNumber}{isArrowNeed ? <span>&gt;</span> : null}</div>
             <div className={styles.step_content}>
               <div className={styles.icon}>
                 {Icon ? <Icon color={color} size={size}/> : null}
