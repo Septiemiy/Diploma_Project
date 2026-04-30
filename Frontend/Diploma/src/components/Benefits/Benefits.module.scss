@@ -29,3 +29,18 @@
         justify-content: space-between;
     }
 }
+
+@media (max-width: 480px) {
+    .benefits {
+        padding: 5% 5% 5% 5%;
+        
+        .description {
+            font-size: 1.3rem;
+        }
+
+        .benefits_container {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+    }
+}

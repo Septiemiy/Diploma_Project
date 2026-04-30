@@ -65,3 +65,17 @@ $font-family: 'JetBrains Mono', monospace;
         }
     }
 }
+
+@media (max-width: 1024px) {
+    .step_container .step_content .description {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .step_container .step_number {
+        span {
+            display: none;
+        }
+    }
+}

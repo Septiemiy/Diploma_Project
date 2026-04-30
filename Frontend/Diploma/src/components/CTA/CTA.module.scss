@@ -49,3 +49,31 @@
         }
     }
 }
+
+@media (max-width: 768px) {
+    .cta {
+        margin-top: 5%;
+        margin-bottom: 5%;
+
+        .title {
+            font-size: 1.7rem;
+        }
+
+        .description {
+            font-size: 0.7rem;
+            color: hsla(0, 0%, 80%);
+        }
+
+        .cta_button {
+            padding: 0.5rem 1.2rem;
+            font-size: 0.7rem;
+         }
+    }
+}
+
+@media (max-width: 420px) {
+    .cta .description {
+        font-size: 0.5rem;
+        color: hsla(0, 0%, 80%);
+    }
+}

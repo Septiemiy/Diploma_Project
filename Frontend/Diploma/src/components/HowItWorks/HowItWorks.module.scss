@@ -25,3 +25,19 @@
         margin-bottom: 3.5%;
     }
 }
+
+@media (max-width: 768px) {
+    .howItWorks {
+        margin-left: 5%;
+        margin-right: 5%;
+
+        .description {
+            font-size: 1.3rem;
+        }
+
+        .steps_container {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+    }
+}
