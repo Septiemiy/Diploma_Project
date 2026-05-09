@@ -6,8 +6,6 @@ import CTA from '../../components/CTA/CTA.tsx';
 import Footer from '../../components/Footer/Footer.tsx';
 import { useRef } from 'react';
 
-import styles from './Landing.module.scss'
-
 const Landing = () => {
 
   const howItWorksRef = useRef<HTMLButtonElement | null>(null);

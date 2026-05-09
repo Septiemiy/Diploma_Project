@@ -58,49 +58,6 @@
         margin-top: 2rem;
     }
 
-    &_button_primary {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 1rem;
-        padding: 0.7rem 1.2rem;
-        background-color: hsl(72 100% 50%);
-        border: none;
-        color: hsl(0, 0%, 0%);
-        cursor: pointer;
-        transition: all 0.25s ease;
-
-        & svg {
-            display: block;
-        }
-
-        & span {
-            transition: transform 0.25s ease-in-out;
-        }
-
-        &:hover {
-            background-color: hsla(72, 100%, 50%, 0.85);
-            
-            span {
-                transform: translateX(5px);
-            }
-        }
-    }
-
-    &_button_secondary {
-        padding: 0.6rem 1rem;
-        background-color: transparent;
-        border: 0.3px solid hsla(0, 0%, 30%, 0.6);
-        color: hsl(0, 0%, 100%);
-        cursor: pointer;
-        font-size: 0.9rem;
-        transition: all 0.25s ease;
-
-        &:hover {
-            background-color: hsla(0, 0%, 20%, 0.5);
-            color: hsl(72 100% 50%);
-        }
-    }
 }
 
 @keyframes titleSlideIn {

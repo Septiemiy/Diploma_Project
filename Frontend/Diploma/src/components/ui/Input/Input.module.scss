@@ -1,0 +1,51 @@
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    width: 100%;
+}
+
+.label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: hsla(0, 0%, 100%, 0.7);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: hsla(0, 0%, 100%, 0.04);
+    border: 0.3px solid hsla(0, 0%, 30%, 0.6);
+    color: hsl(0, 0%, 100%);
+    font-family: inherit;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    box-sizing: border-box;
+
+    &::placeholder {
+        color: hsla(0, 0%, 100%, 0.25);
+    }
+
+    &:focus {
+        border-color: hsl(72, 100%, 50%);
+        background-color: hsla(72, 100%, 50%, 0.03);
+    }
+
+    &__error {
+        border-color: hsl(0, 80%, 55%);
+
+        &:focus {
+            border-color: hsl(0, 80%, 55%);
+            background-color: hsla(0, 80%, 55%, 0.03);
+        }
+    }
+}
+
+.errorMsg {
+    font-size: 0.75rem;
+    color: hsl(0, 80%, 60%);
+    margin-top: 0.1rem;
+}
