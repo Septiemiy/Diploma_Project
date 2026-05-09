@@ -1,0 +1,39 @@
+.toggle {
+    display: flex;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    align-items: center;
+    overflow: hidden;
+    gap: 0.3rem;
+    margin: 0 auto;
+
+    &_btn {
+        padding: 0.45rem 1rem;
+        background: transparent;
+        border: none;
+        color: hsla(0, 0%, 100%, 0.4);
+        border: 0.3px solid hsla(0, 0%, 30%, 0.6);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: color 0.2s ease, background-color 0.2s ease;
+        white-space: nowrap;
+
+        &:hover {
+            color: hsla(0, 0%, 100%, 0.8);
+        }
+
+        &__active {
+            background-color: hsl(72, 100%, 50%);
+            color: hsl(0, 0%, 0%);
+            font-weight: 700;
+
+            &:hover {
+                color: hsl(0, 0%, 0%);
+                background-color: hsla(72, 100%, 50%, 0.9);
+            }
+        }
+    }
+}

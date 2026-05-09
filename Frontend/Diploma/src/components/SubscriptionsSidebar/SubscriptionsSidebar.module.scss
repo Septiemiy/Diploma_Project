@@ -1,0 +1,99 @@
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    border-left: 0.3px solid hsla(0, 0%, 30%, 0.4);
+    padding: 1.5rem 0;
+
+    &_header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1.25rem 0.75rem;
+        border-bottom: 0.3px solid hsla(0, 0%, 30%, 0.3);
+        margin-bottom: 0.5rem;
+    }
+
+    &_title {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: hsla(0, 0%, 100%, 0.4);
+    }
+
+    &_count {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: hsl(72, 100%, 50%);
+        background-color: hsla(72, 100%, 50%, 0.1);
+        padding: 0.1rem 0.45rem;
+        min-width: 20px;
+        text-align: center;
+    }
+
+    &_list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    &_item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+        padding: 0.65rem 1.25rem;
+        background: transparent;
+        border: none;
+        color: hsla(0, 0%, 100%, 0.6);
+        font-family: inherit;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: left;
+
+        &:hover {
+            background-color: hsla(0, 0%, 100%, 0.03);
+            color: hsl(0, 0%, 100%);
+        }
+
+        &_name {
+            flex: 1;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        &_arrow {
+            font-size: 1rem;
+            color: hsla(0, 0%, 100%, 0.2);
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+
+        &:hover &_arrow {
+            color: hsl(72, 100%, 50%);
+            transform: translateX(2px);
+        }
+    }
+}
+
+.avatar {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    background-color: hsla(72, 100%, 50%, 0.12);
+    border: 0.3px solid hsla(72, 100%, 50%, 0.3);
+    color: hsl(72, 100%, 50%);
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.05em;
+}

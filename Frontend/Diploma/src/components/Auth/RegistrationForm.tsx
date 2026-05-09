@@ -166,7 +166,11 @@ const RegistrationForm = () => {
                 />
             </div>
 
-            <Button variant="primary" withArrow onClick={handleSubmit}>
+            <Button 
+                variant="primary" 
+                withArrow={ true } 
+                onClick={ handleSubmit }
+            >
                 Create Account
             </Button>
         </div>
