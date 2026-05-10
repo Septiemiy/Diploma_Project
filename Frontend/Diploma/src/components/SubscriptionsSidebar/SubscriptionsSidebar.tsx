@@ -1,19 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import { useDashboard } from "../../context/DashboardContext";
 
-import type { Streamer, Viewer } from "../../interfaces/interfaces";
+import type { IStreamer, IViewer } from "../../interfaces/interfaces";
 
 import styles from "./SubscriptionsSidebar.module.scss";
 
 // Mock data
-const MOCK_SUBSCRIPTIONS: Streamer[] = [
+const MOCK_SUBSCRIPTIONS: IStreamer[] = [
     { id: 1, username: "xQc", queues: [], orders: [] },
     { id: 2, username: "Asmongold", queues: [], orders: [] },
     { id: 3, username: "ubermarginal", queues: [], orders: [] },
     { id: 4, username: "Jeens", queues: [], orders: [] },
 ];
 
-const MOCK_SUBSCRIBERS: Viewer[] = [
+const MOCK_SUBSCRIBERS: IViewer[] = [
     { id: 10, username: "viewer_one" },
     { id: 11, username: "gamer_xyz" },
     { id: 12, username: "nightwatcher" },

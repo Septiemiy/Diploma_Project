@@ -4,12 +4,14 @@
     min-height: calc(100vh - 103px);
     margin-top: 121px;
     width: 100%;
+    min-height: calc(100vh - 103px);
 
     &_left {
         position: sticky;
         top: 103px;
-        height: calc(100vh - 103px);
+        height: auto;
         overflow-y: auto;
+        border-right: 0.3px solid hsla(0, 0%, 30%, 0.4);
     }
 
     &_main {
@@ -20,8 +22,9 @@
     &_right {
         position: sticky;
         top: 103px;
-        height: calc(100vh - 103px);
+        height: auto;
         overflow-y: auto;
+        border-left: 0.3px solid hsla(0, 0%, 30%, 0.4);
     }
 }
 

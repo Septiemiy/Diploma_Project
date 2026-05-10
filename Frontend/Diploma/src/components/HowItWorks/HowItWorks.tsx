@@ -3,7 +3,6 @@ import { forwardRef } from 'react';
 import { MdOutlineVideocam, MdOutlineFormatListNumbered, MdOutlineAttachMoney, 
         MdPlayArrow, MdLiveTv, MdQueue, MdLink, MdDashboardCustomize } from 'react-icons/md'
 
-
 import styles from './HowItWorks.module.scss';
 
 const HowItWorks = forwardRef<HTMLButtonElement>((_, ref) => {

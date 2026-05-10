@@ -3,7 +3,7 @@ import { MdOutlineVideocam } from "react-icons/md";
 import styles from "./PickStreamers.module.scss";
 
 
-const PickStreamerPage = () => {
+const PickStreamer= () => {
     return (
         <div className={styles.page}>
             <div className={styles.page_placeholder}>
@@ -19,4 +19,4 @@ const PickStreamerPage = () => {
     );
 };
 
-export default PickStreamerPage;
+export default PickStreamer;

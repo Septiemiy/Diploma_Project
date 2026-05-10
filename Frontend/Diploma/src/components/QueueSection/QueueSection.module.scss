@@ -1,0 +1,69 @@
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+
+    &_header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.6rem 0.85rem;
+        background-color: hsla(0, 0%, 100%, 0.03);
+        border: 0.3px solid hsla(0, 0%, 30%, 0.4);
+        border-bottom: none;
+
+        &_left {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        &_label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: hsl(0, 0%, 100%);
+        }
+
+        &_count {
+            font-size: 0.7rem;
+            color: hsla(0, 0%, 100%, 0.3);
+            padding: 0.1rem 0.4rem;
+            border: 0.3px solid hsla(0, 0%, 30%, 0.4);
+        }
+
+        &_price {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: hsl(72, 100%, 50%);
+            font-variant-numeric: tabular-nums;
+
+            &_unit {
+                font-size: 0.65rem;
+                font-weight: 400;
+                color: hsla(0, 0%, 100%, 0.35);
+            }
+        }
+    }
+
+    &_list {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+
+        & > * + * {
+            border-top: 0.3px solid hsla(0, 0%, 30%, 0.3);
+        }
+
+        border: 0.3px solid hsla(0, 0%, 30%, 0.4);
+    }
+
+    &_empty {
+        padding: 1.25rem 0.85rem;
+        font-size: 0.8rem;
+        color: hsla(0, 0%, 100%, 0.2);
+        border: 0.3px solid hsla(0, 0%, 30%, 0.4);
+        border-top: none;
+    }
+}

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState } from "react";
 
-import type { DashboardMode, Queue } from "../interfaces/interfaces"
+import type { DashboardMode, IQueue } from "../interfaces/interfaces"
 
 interface Props {
     children: React.ReactNode;
@@ -12,8 +12,8 @@ interface DashboardContextValue {
     activeQueueIds: number[];
     toggleQueue: (id: number) => void;
     clearQueues: () => void;
-    allQueues: Queue[];
-    setAllQueues: (queues: Queue[]) => void;
+    allQueues: IQueue[];
+    setAllQueues: (queues: IQueue[]) => void;
 }
 
 const DashboardContext = createContext<DashboardContextValue | null>(null);
@@ -21,7 +21,7 @@ const DashboardContext = createContext<DashboardContextValue | null>(null);
 export const DashboardProvider = ({ children }: Props) => {
     const [mode, setMode] = useState<DashboardMode>("viewer");
     const [activeQueueIds, setActiveQueueIds] = useState<number[]>([]);
-    const [allQueues, setAllQueues] = useState<Queue[]>([]);
+    const [allQueues, setAllQueues] = useState<IQueue[]>([]);
 
     const toggleQueue = (id: number) => {
         setActiveQueueIds((prev) =>

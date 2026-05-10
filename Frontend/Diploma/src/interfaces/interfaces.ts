@@ -1,10 +1,10 @@
-export interface Queue {
+export interface IQueue {
     id: number;
     label: string;
     pricePerMinute: number;
 }
 
-export interface VideoOrder {
+export interface IVideoOrder {
     id: number;
     youtubeUrl: string;
     title: string;
@@ -13,18 +13,17 @@ export interface VideoOrder {
     totalMinutes: number;
     queueId: number;
     viewerUsername: string;
-    status: "pending" | "watching" | "done";
 }
 
-export interface Streamer {
+export interface IStreamer {
     id: number;
     username: string;
     avatar?: string;
-    queues: Queue[];
-    orders: VideoOrder[];
+    queues: IQueue[];
+    orders: IVideoOrder[];
 }
 
-export interface Viewer {
+export interface IViewer {
     id: number;
     username: string;
     avatar?: string;
