@@ -9,7 +9,11 @@ const DashboardTopBar = () => {
 
     const handleSearch = () => {
         const trimmed = search.trim()
-        if (!trimmed) return
+        
+        if (!trimmed) {
+            return
+        }
+
         // TODO: замінити на API — пошук стрімера за username
         console.log('Search streamer:', trimmed)
     }

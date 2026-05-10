@@ -67,3 +67,129 @@
         border-top: none;
     }
 }
+
+.section_header {
+    &_view {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+ 
+    &_left {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+    }
+ 
+    &_right {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+    }
+ 
+    &_actions {
+        display: flex;
+        gap: 0.3rem;
+    }
+ 
+    &_edit_btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: transparent;
+        border: 0.3px solid hsla(0, 0%, 30%, 0.5);
+        color: hsla(0, 0%, 100%, 0.4);
+        cursor: pointer;
+        transition: all 0.2s ease;
+ 
+        &:hover {
+            border-color: hsl(72, 100%, 50%);
+            color: hsl(72, 100%, 50%);
+        }
+    }
+ 
+    &_delete_btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: transparent;
+        border: 0.3px solid hsla(0, 80%, 55%, 0.3);
+        color: hsla(0, 80%, 60%, 0.5);
+        cursor: pointer;
+        transition: all 0.2s ease;
+ 
+        &:hover {
+            border-color: hsl(0, 80%, 55%);
+            color: hsl(0, 80%, 65%);
+            background-color: hsla(0, 80%, 55%, 0.08);
+        }
+    }
+ 
+    &_edit {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        width: 100%;
+    }
+ 
+    &_input {
+        padding: 0.25rem 0.5rem;
+        background-color: hsla(0, 0%, 100%, 0.05);
+        border: 0.3px solid hsla(72, 100%, 50%, 0.5);
+        color: hsl(0, 0%, 100%);
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 700;
+        outline: none;
+        flex: 1;
+ 
+        &__price {
+            width: 70px;
+            flex: none;
+        }
+ 
+        &::placeholder {
+            color: hsla(0, 0%, 100%, 0.25);
+        }
+    }
+ 
+    &_confirm {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        background-color: hsla(72, 100%, 50%, 0.12);
+        border: 0.3px solid hsla(72, 100%, 50%, 0.4);
+        color: hsl(72, 100%, 50%);
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+ 
+        &:hover { background-color: hsla(72, 100%, 50%, 0.25); }
+    }
+ 
+    &_cancel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        background: transparent;
+        border: 0.3px solid hsla(0, 0%, 30%, 0.5);
+        color: hsla(0, 0%, 100%, 0.35);
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+ 
+        &:hover {
+            border-color: hsla(0, 80%, 55%, 0.5);
+            color: hsl(0, 80%, 60%);
+        }
+    }
+}

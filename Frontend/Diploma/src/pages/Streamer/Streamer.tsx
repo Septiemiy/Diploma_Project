@@ -3,24 +3,35 @@ import { useParams } from 'react-router-dom'
 import { useDashboard } from '../../context/DashboardContext'
 import QueueSection from '../../components/QueueSection/QueueSection'
 import { getMockStreamer } from '../../mocks/mockStreamer'
+import { GoPlus, GoCheck, GoX } from 'react-icons/go'
 
-import type { IStreamer, IVideoOrder } from '../../interfaces/interfaces'
+import type { IStreamer, IVideoOrder, IQueue } from '../../interfaces/interfaces'
 
 import styles from './Streamer.module.scss'
+import formStyles from './AddQueueForm.module.scss'
 
-const Streamer = () => {
+const MY_STREAMER_ID = 2
+
+interface Props {
+    isOwner?: boolean
+}
+
+const Streamer = ({ isOwner = false }: Props) => {
     const { id } = useParams<{ id: string }>()
-    const { activeQueueIds, setAllQueues, clearQueues, mode } = useDashboard()
+    const { activeQueueIds, setAllQueues, clearQueues } = useDashboard()
     const [streamer, setStreamer] = useState<IStreamer | null>(null)
     const [orders, setOrders] = useState<IVideoOrder[]>([])
+    const [queues, setQueues] = useState<IQueue[]>([])
+    const streamerId = isOwner ? MY_STREAMER_ID : Number(id)
 
     useEffect(() => {
         setStreamer(null)
         setOrders([])
+        setQueues([])
         clearQueues()
 
         // TODO: замінити на API
-        const data = getMockStreamer(Number(id))
+        const data = getMockStreamer(streamerId)
         
         if (!data) {
             return
@@ -30,11 +41,39 @@ const Streamer = () => {
 
         setStreamer(data)
         setOrders(data.orders)
+        setQueues(sortedQueues)
         setAllQueues(sortedQueues)
-    }, [id])
+    }, [streamerId])
 
-    const handleRemove = (orderId: number) => {
+    const handleRemoveOrder = (orderId: number) => {
         setOrders((prev) => prev.filter((o) => o.id !== orderId))
+    }
+
+    const handleAddQueue = (queue: IQueue) => {
+        setQueues((prev) => {
+            const updated = [...prev, queue].sort((a, b) => b.pricePerMinute - a.pricePerMinute)
+            setAllQueues(updated)
+            return updated
+        })
+    }
+
+    const handleUpdateQueue = (updated: IQueue) => {
+        setQueues((prev) => {
+            const next = prev
+                .map((q) => (q.id === updated.id ? updated : q))
+                .sort((a, b) => b.pricePerMinute - a.pricePerMinute)
+            setAllQueues(next)
+            return next
+        })
+    }
+
+    const handleDeleteQueue = (queueId: number) => {
+        setQueues((prev) => {
+            const next = prev.filter((q) => q.id !== queueId)
+            setAllQueues(next)
+            return next
+        })
+        setOrders((prev) => prev.filter((o) => o.queueId !== queueId))
     }
 
     if (!streamer) {
@@ -45,11 +84,9 @@ const Streamer = () => {
         )
     }
 
-    const sortedQueues = [...streamer.queues].sort((a, b) => b.pricePerMinute - a.pricePerMinute)
-
     const visibleQueues = activeQueueIds.length > 0
-            ? sortedQueues.filter((q) => activeQueueIds.includes(q.id))
-            : sortedQueues
+            ? queues.filter((q) => activeQueueIds.includes(q.id))
+            : queues
 
     return (
         <div className={styles.page}>
@@ -58,12 +95,22 @@ const Streamer = () => {
                     {streamer.username.slice(0, 2).toUpperCase()}
                 </div>
                 <div className={styles.page_header_info}>
-                    <h1 className={styles.page_header_name}>{streamer.username}</h1>
+                    <h1 className={styles.page_header_name}>
+                        {streamer.username}
+                        
+                        {isOwner ? (
+                            <span className={styles.page_header_badge}>You</span>
+                        ) : null}
+                    </h1>
                     <span className={styles.page_header_meta}>
-                        {streamer.queues.length} queues · {orders.length} videos ordered
+                        {queues.length} queues · {orders.length} videos ordered
                     </span>
                 </div>
             </div>
+
+            {isOwner ? (
+                <AddQueueForm onAdd={handleAddQueue} existingIds={queues.map((q) => q.id)} />
+            ) : null}
 
             {visibleQueues.length === 0 ? (
                 <div className={styles.page_empty}>
@@ -76,11 +123,91 @@ const Streamer = () => {
                             key={ queue.id }
                             queue={ queue }
                             orders={ orders.filter((o) => o.queueId === queue.id) }
-                            onRemove={ handleRemove }
+                            onRemoveOrder={ handleRemoveOrder }
+                            onUpdateQueue={ isOwner ? handleUpdateQueue : undefined }
+                            onDeleteQueue={ isOwner ? handleDeleteQueue : undefined }
+                            isOwner={ isOwner }
                         />
                     ))}
                 </div>
             )}
+        </div>
+    )
+}
+ 
+interface AddQueueFormProps {
+    onAdd: (queue: IQueue) => void
+    existingIds: number[]
+}
+ 
+const AddQueueForm = ({ onAdd }: AddQueueFormProps) => {
+    const [open, setOpen] = useState(false)
+    const [label, setLabel] = useState('')
+    const [price, setPrice] = useState('')
+    const [error, setError] = useState('')
+ 
+    const handleSubmit = () => {
+        const p = parseFloat(price)
+
+        if (!label.trim()) {
+            return setError('Queue name is required')
+        }
+
+        if (isNaN(p) || p <= 0) {
+            return setError('Enter a valid price')
+        }
+
+        onAdd({ id: Date.now(), label: label.trim(), pricePerMinute: p })
+
+        setLabel('')
+        setPrice('')
+        setError('')
+        setOpen(false)
+    }
+ 
+    const handleCancel = () => {
+        setOpen(false)
+        setLabel('')
+        setPrice('')
+        setError('')
+    }
+ 
+    if (!open) {
+        return (
+            <button className={formStyles.trigger} onClick={() => setOpen(true)}>
+                <GoPlus size={15} />
+                Add Queue
+            </button>
+        )
+    }
+ 
+    return (
+        <div className={formStyles.form}>
+            <div className={formStyles.form_fields}>
+                <input
+                    className={formStyles.form_input}
+                    placeholder="Queue name"
+                    value={ label }
+                    onChange={(e) => setLabel(e.target.value)}
+                    autoFocus
+                />
+                <input
+                    className={formStyles.form_input}
+                    placeholder="$ / min"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={ price }
+                    onChange={(e) => setPrice(e.target.value)}
+                />
+                <button className={formStyles.form_confirm} onClick={handleSubmit}>
+                    <GoCheck size={15} />
+                </button>
+                <button className={formStyles.form_cancel} onClick={handleCancel}>
+                    <GoX size={15} />
+                </button>
+            </div>
+            {error ? <span className={formStyles.form_error}>{error}</span> : null}
         </div>
     )
 }

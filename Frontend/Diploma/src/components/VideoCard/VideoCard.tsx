@@ -1,5 +1,4 @@
 import { GoLinkExternal, GoTrash, GoPlus } from 'react-icons/go'
-import { useDashboard } from '../../context/DashboardContext'
 
 import type { IVideoOrder, IQueue } from '../../interfaces/interfaces'
 
@@ -8,6 +7,7 @@ import styles from './VideoCard.module.scss'
 interface Props {
     order: IVideoOrder
     queue: IQueue
+    isOwner?: boolean
     onRemove?: (orderId: number) => void
 }
 
@@ -17,9 +17,7 @@ const formatMinutes = (min: number) => {
     return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-const VideoCard = ({ order, queue, onRemove }: Props) => {
-    const { mode } = useDashboard()
-    const isStreamer = mode === 'streamer'
+const VideoCard = ({ order, queue, isOwner = false, onRemove }: Props) => {
     const totalCost = (order.orderedMinutes * queue.pricePerMinute).toFixed(2)
     const progressPercent = Math.min((order.orderedMinutes / order.totalMinutes) * 100, 100)
     const isFullyOrdered = order.orderedMinutes >= order.totalMinutes
@@ -27,14 +25,14 @@ const VideoCard = ({ order, queue, onRemove }: Props) => {
     return (
         <div className={styles.card}>
             <a
-                href={order.youtubeUrl}
+                href={ order.youtubeUrl }
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.card_thumb}
             >
                 <img
-                    src={order.thumbnail}
-                    alt={order.title}
+                    src={ order.thumbnail }
+                    alt={ order.title }
                     className={styles.card_thumb_img}
                 />
                 <GoLinkExternal size={14} className={styles.card_thumb_icon} />
@@ -43,12 +41,12 @@ const VideoCard = ({ order, queue, onRemove }: Props) => {
             <div className={styles.card_info}>
                 <div className={styles.card_info_top}>
                     <a
-                        href={order.youtubeUrl}
+                        href={ order.youtubeUrl }
                         target="_blank"
                         rel="noopener noreferrer"
                         className={styles.card_info_title}
                     >
-                        {order.title}
+                        { order.title }
                     </a>
                     <span className={styles.card_info_viewer}>
                         by {order.viewerUsername}
@@ -58,10 +56,9 @@ const VideoCard = ({ order, queue, onRemove }: Props) => {
                 <div className={styles.card_progress}>
                     <div className={styles.card_progress_bar}>
                         <div
-                            className={`${styles.card_progress_fill} ${isFullyOrdered ? styles.card_progress_fill__full : ''}`}
+                            className={styles.card_progress_fill}
                             style={{ width: `${progressPercent}%` }}
-                        >
-                        </div>
+                        />
                     </div>
                     <div className={styles.card_progress_labels}>
                         <span className={styles.card_progress_ordered}>
@@ -84,7 +81,7 @@ const VideoCard = ({ order, queue, onRemove }: Props) => {
                     </div>
 
                     <div className={styles.card_footer_actions}>
-                        { !isStreamer && !isFullyOrdered ? (
+                        {!isOwner && !isFullyOrdered ? (
                             <button
                                 className={styles.card_footer_extend}
                                 title="Order more minutes"
@@ -98,7 +95,7 @@ const VideoCard = ({ order, queue, onRemove }: Props) => {
                             </button>
                         ) : null}
 
-                        { isStreamer && onRemove ? (
+                        {isOwner && onRemove ? (
                             <button
                                 className={styles.card_footer_remove}
                                 title="Remove from queue"

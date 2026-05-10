@@ -1,0 +1,97 @@
+.trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 0.3px solid hsla(72, 100%, 50%, 0.35);
+    color: hsl(72, 100%, 50%);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: fit-content;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: hsla(72, 100%, 50%, 0.08);
+        border-color: hsl(72, 100%, 50%);
+    }
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: fit-content;
+
+    &_fields {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    &_input {
+        padding: 0.5rem 0.75rem;
+        background-color: hsla(0, 0%, 100%, 0.04);
+        border: 0.3px solid hsla(0, 0%, 30%, 0.6);
+        color: hsl(0, 0%, 100%);
+        font-family: inherit;
+        font-size: 0.85rem;
+        outline: none;
+        width: 160px;
+        transition: border-color 0.2s ease;
+
+        &:focus {
+            border-color: hsl(72, 100%, 50%);
+        }
+
+        &[type='number'] {
+            width: 90px;
+        }
+
+        &::placeholder {
+            color: hsla(0, 0%, 100%, 0.25);
+        }
+    }
+
+    &_confirm {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background-color: hsla(72, 100%, 50%, 0.12);
+        border: 0.3px solid hsla(72, 100%, 50%, 0.4);
+        color: hsl(72, 100%, 50%);
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background-color: hsla(72, 100%, 50%, 0.25);
+        }
+    }
+
+    &_cancel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: transparent;
+        border: 0.3px solid hsla(0, 0%, 30%, 0.5);
+        color: hsla(0, 0%, 100%, 0.4);
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            border-color: hsla(0, 80%, 55%, 0.5);
+            color: hsl(0, 80%, 60%);
+        }
+    }
+
+    &_error {
+        font-size: 0.75rem;
+        color: hsl(0, 80%, 60%);
+    }
+}

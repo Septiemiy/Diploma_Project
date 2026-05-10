@@ -1,4 +1,4 @@
-import { Routes, Route, useParams } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import  Landing  from './pages/Landing/Landing.tsx'
 import Login from './pages/Login/Login.tsx'
 import Registration from './pages/Registration/Registration.tsx'
@@ -32,6 +32,7 @@ const App = () => {
           >
             <Route index element={<PickStreamerPage />} />
             <Route path="streamer/:id" element={<Streamer />} />
+            <Route path="my" element={<Streamer isOwner />} />
           </Route>
           <Route path="*" element={ <Landing /> } />
         </Routes>

@@ -4,7 +4,7 @@
     width: 100%;
     height: 100%;
     border-left: 0.3px solid hsla(0, 0%, 30%, 0.4);
-    padding: 1.5rem 0;
+    padding: 0.2rem 0;
 
     &_header {
         display: flex;
@@ -12,6 +12,7 @@
         justify-content: space-between;
         padding: 0 1.25rem 0.75rem;
         border-bottom: 0.3px solid hsla(0, 0%, 30%, 0.3);
+        margin-top: 0.7rem;
         margin-bottom: 0.5rem;
     }
 
@@ -96,4 +97,24 @@
     align-items: center;
     justify-content: center;
     letter-spacing: 0.05em;
+}
+
+.sidebar_mypage {
+    width: 100%;
+    padding: 0.65rem 1.25rem;
+    background-color: hsla(72, 100%, 50%, 0.08);
+    border: none;
+    border-bottom: 0.3px solid hsla(72, 100%, 50%, 0.25);
+    color: hsl(72, 100%, 50%);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: left;
+    letter-spacing: 0.02em;
+    transition: background-color 0.2s ease;
+ 
+    &:hover {
+        background-color: hsla(72, 100%, 50%, 0.15);
+    }
 }

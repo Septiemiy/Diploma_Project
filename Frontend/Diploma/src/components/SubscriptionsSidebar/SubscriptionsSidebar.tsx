@@ -37,6 +37,14 @@ const SubscriptionsSidebar = () => {
 
     return (
         <aside className={styles.sidebar}>
+            {isStreamer ? (
+                <button
+                    className={styles.sidebar_mypage}
+                    onClick={() => navigate('/dashboard/my')}
+                >
+                    My Streamer Page
+                </button>
+            ) : null}
             <div className={styles.sidebar_header}>
                 <span className={styles.sidebar_title}>
                     {isStreamer ? "Subscribers" : "Subscriptions"}
