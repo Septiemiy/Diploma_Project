@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import Button from "../ui/Button/Button";
 import Input from "../ui/Input/Input";
+import { useNavigate } from "react-router-dom";
 
 import styles from "./RegistrationForm.module.scss";
 
@@ -64,6 +65,7 @@ const RegistrationForm = () => {
     });
     const [errors, setErrors] = useState<FormErrors>({});
     const [touched, setTouched] = useState<Record<string, boolean>>({});
+    const navigate = useNavigate();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -74,7 +76,6 @@ const RegistrationForm = () => {
             setErrors(validate(updated));
         }
 
-        // Реvalіdate confirmPassword якщо змінюється password
         if (name === "password" && touched["confirmPassword"]) {
             setErrors(validate(updated));
         }
@@ -100,6 +101,7 @@ const RegistrationForm = () => {
 
         if (Object.keys(validationErrors).length === 0) {
             // TODO: підключити API
+            navigate("/dashboard")
             console.log("Submit:", values);
         }
     };

@@ -1,11 +1,15 @@
 import { useState } from 'react'
 import { GoSearch } from 'react-icons/go'
 import { MdOutlineVideoCall } from 'react-icons/md'
+import { useDashboard } from '../../context/DashboardContext'
 
 import styles from './DashboardTopBar.module.scss'
 
 const DashboardTopBar = () => {
     const [search, setSearch] = useState('')
+    const { mode, activeStreamerId, openOrderModal } = useDashboard()
+
+    const canOrder = mode === 'viewer' && activeStreamerId !== null
 
     const handleSearch = () => {
         const trimmed = search.trim()
@@ -45,11 +49,13 @@ const DashboardTopBar = () => {
                     </button>
                 ) : null}
             </div>
-
-            <button className={styles.topbar_order}>
-                <MdOutlineVideoCall size={18} />
-                Order Video
-            </button>
+            
+            {canOrder ? (
+                <button className={styles.topbar_order} onClick={openOrderModal}>
+                    <MdOutlineVideoCall size={18} />
+                    Order Video
+                </button>
+            ) : null}
         </div>
     )
 }

@@ -1,4 +1,6 @@
 import { GoLinkExternal, GoTrash, GoPlus } from 'react-icons/go'
+import ExtendForm from '../ExtendForm/ExtendForm'
+import { useState } from 'react'
 
 import type { IVideoOrder, IQueue } from '../../interfaces/interfaces'
 
@@ -9,6 +11,7 @@ interface Props {
     queue: IQueue
     isOwner?: boolean
     onRemove?: (orderId: number) => void
+    onExtend?: (orderId: number, additionalMinutes: number) => void
 }
 
 const formatMinutes = (min: number) => {
@@ -17,10 +20,16 @@ const formatMinutes = (min: number) => {
     return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-const VideoCard = ({ order, queue, isOwner = false, onRemove }: Props) => {
+const VideoCard = ({ order, queue, isOwner = false, onRemove, onExtend }: Props) => {
     const totalCost = (order.orderedMinutes * queue.pricePerMinute).toFixed(2)
     const progressPercent = Math.min((order.orderedMinutes / order.totalMinutes) * 100, 100)
     const isFullyOrdered = order.orderedMinutes >= order.totalMinutes
+    const [isExtending, setIsExtending] = useState(false)
+
+    const handleExtend = (additionalMinutes: number) => {
+        onExtend?.(order.id, additionalMinutes)
+        setIsExtending(false)
+    }
 
     return (
         <div className={styles.card}>
@@ -85,10 +94,7 @@ const VideoCard = ({ order, queue, isOwner = false, onRemove }: Props) => {
                             <button
                                 className={styles.card_footer_extend}
                                 title="Order more minutes"
-                                onClick={() => {
-                                    // TODO: відкрити форму дозамовлення
-                                    console.log('Extend order:', order.id)
-                                }}
+                                onClick={() => setIsExtending((extending) => !extending)}
                             >
                                 <GoPlus size={14} />
                                 <span>Extend</span>
@@ -107,6 +113,15 @@ const VideoCard = ({ order, queue, isOwner = false, onRemove }: Props) => {
                     </div>
                 </div>
             </div>
+            {isExtending && (
+                <ExtendForm
+                    queue={ queue }
+                    orderedMinutes={ order.orderedMinutes }
+                    totalMinutes={ order.totalMinutes }
+                    onExtend={ handleExtend }
+                    onCancel={() => setIsExtending(false)}
+                />
+            )}
         </div>
     )
 }

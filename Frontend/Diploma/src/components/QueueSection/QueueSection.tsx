@@ -11,11 +11,12 @@ interface Props {
     orders: IVideoOrder[]
     isOwner?: boolean
     onRemoveOrder?: (orderId: number) => void
+    onExtend?: (orderId: number, additionalMinutes: number) => void
     onUpdateQueue?: (updated: IQueue) => void
     onDeleteQueue?: (queueId: number) => void
 }
 
-const QueueSection = ({ queue, orders, isOwner = false, onRemoveOrder, onUpdateQueue, onDeleteQueue }: Props) => {
+const QueueSection = ({ queue, orders, isOwner = false, onRemoveOrder, onExtend, onUpdateQueue, onDeleteQueue }: Props) => {
     const [editing, setEditing] = useState(false)
     const [label, setLabel] = useState(queue.label)
     const [price, setPrice] = useState(String(queue.pricePerMinute))
@@ -55,6 +56,7 @@ const QueueSection = ({ queue, orders, isOwner = false, onRemoveOrder, onUpdateQ
                             step="0.01"
                             value={price}
                             onChange={(e) => setPrice(e.target.value)}
+                            onWheel={(e) => e.currentTarget.blur()}                            
                         />
                         <button className={styles.section_header_confirm} onClick={handleSave}>
                             <GoCheck size={13} />
@@ -108,6 +110,7 @@ const QueueSection = ({ queue, orders, isOwner = false, onRemoveOrder, onUpdateQ
                             queue={ queue }
                             isOwner={ isOwner }
                             onRemove={ onRemoveOrder }
+                            onExtend={ onExtend }
                         />
                     ))}
                 </div>

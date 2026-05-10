@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import Button from "../ui/Button/Button";
 import Input from "../ui/Input/Input";
+import { useNavigate } from "react-router-dom";
 
 import styles from "./LoginForm.module.scss";
 
@@ -37,6 +38,7 @@ const LoginForm = () => {
     const [values, setValues] = useState<FormValues>({ email: "", password: "" });
     const [errors, setErrors] = useState<FormErrors>({});
     const [touched, setTouched] = useState<Record<string, boolean>>({});
+    const navigate = useNavigate();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -63,6 +65,7 @@ const LoginForm = () => {
 
         if (Object.keys(validationErrors).length === 0) {
             // TODO: підключити API
+            navigate("/dashboard");
             console.log("Submit:", values);
         }
     };

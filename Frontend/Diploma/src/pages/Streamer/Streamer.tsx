@@ -4,6 +4,7 @@ import { useDashboard } from '../../context/DashboardContext'
 import QueueSection from '../../components/QueueSection/QueueSection'
 import { getMockStreamer } from '../../mocks/mockStreamer'
 import { GoPlus, GoCheck, GoX } from 'react-icons/go'
+import OrderModal from '../../components/OrderModel/OrderModal'
 
 import type { IStreamer, IVideoOrder, IQueue } from '../../interfaces/interfaces'
 
@@ -18,7 +19,7 @@ interface Props {
 
 const Streamer = ({ isOwner = false }: Props) => {
     const { id } = useParams<{ id: string }>()
-    const { activeQueueIds, setAllQueues, clearQueues } = useDashboard()
+    const { activeQueueIds, setAllQueues, clearQueues, setActiveStreamerId, mode } = useDashboard()
     const [streamer, setStreamer] = useState<IStreamer | null>(null)
     const [orders, setOrders] = useState<IVideoOrder[]>([])
     const [queues, setQueues] = useState<IQueue[]>([])
@@ -29,6 +30,10 @@ const Streamer = ({ isOwner = false }: Props) => {
         setOrders([])
         setQueues([])
         clearQueues()
+
+        if (!isOwner) {
+            setActiveStreamerId(streamerId)
+        }
 
         // TODO: замінити на API
         const data = getMockStreamer(streamerId)
@@ -43,10 +48,24 @@ const Streamer = ({ isOwner = false }: Props) => {
         setOrders(data.orders)
         setQueues(sortedQueues)
         setAllQueues(sortedQueues)
+
+        return () => {
+            if(!isOwner) {
+                setActiveStreamerId(null)
+            }
+        }
     }, [streamerId])
 
     const handleRemoveOrder = (orderId: number) => {
         setOrders((prev) => prev.filter((o) => o.id !== orderId))
+    }
+
+    const handleExtend = (orderId: number, additionalMinutes: number) => {
+        setOrders((prev) => prev.map((o) =>
+            o.id === orderId
+                ? { ...o, orderedMinutes: parseFloat((o.orderedMinutes + additionalMinutes).toFixed(2)) }
+                : o
+        ))
     }
 
     const handleAddQueue = (queue: IQueue) => {
@@ -74,6 +93,14 @@ const Streamer = ({ isOwner = false }: Props) => {
             return next
         })
         setOrders((prev) => prev.filter((o) => o.queueId !== queueId))
+    }
+
+    const handleAddOrder = (order: Omit<import('../../interfaces/interfaces').IVideoOrder, 'id' | 'status'>) => {
+        const newOrder = {
+            ...order,
+            id: Date.now(),
+        }
+        setOrders((prev) => [...prev, newOrder])
     }
 
     if (!streamer) {
@@ -124,6 +151,7 @@ const Streamer = ({ isOwner = false }: Props) => {
                             queue={ queue }
                             orders={ orders.filter((o) => o.queueId === queue.id) }
                             onRemoveOrder={ handleRemoveOrder }
+                            onExtend={ !isOwner ? handleExtend : undefined }
                             onUpdateQueue={ isOwner ? handleUpdateQueue : undefined }
                             onDeleteQueue={ isOwner ? handleDeleteQueue : undefined }
                             isOwner={ isOwner }
@@ -131,6 +159,11 @@ const Streamer = ({ isOwner = false }: Props) => {
                     ))}
                 </div>
             )}
+            <div>
+                {!isOwner && mode === 'viewer' ? (
+                    <OrderModal queues={queues} onSubmit={handleAddOrder} />
+                ) : null}
+            </div>
         </div>
     )
 }
@@ -199,6 +232,7 @@ const AddQueueForm = ({ onAdd }: AddQueueFormProps) => {
                     step="0.01"
                     value={ price }
                     onChange={(e) => setPrice(e.target.value)}
+                    onWheel={(e) => e.currentTarget.blur()}
                 />
                 <button className={formStyles.form_confirm} onClick={handleSubmit}>
                     <GoCheck size={15} />

@@ -152,6 +152,11 @@
             width: 70px;
             flex: none;
         }
+
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+            appearance: none;
+        }
  
         &::placeholder {
             color: hsla(0, 0%, 100%, 0.25);

@@ -42,6 +42,11 @@
         width: 160px;
         transition: border-color 0.2s ease;
 
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+            appearance: none;
+        }
+
         &:focus {
             border-color: hsl(72, 100%, 50%);
         }

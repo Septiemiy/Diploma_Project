@@ -14,6 +14,11 @@ interface DashboardContextValue {
     clearQueues: () => void;
     allQueues: IQueue[];
     setAllQueues: (queues: IQueue[]) => void;
+    activeStreamerId: number | null;
+    setActiveStreamerId: (id: number | null) => void;
+    isOrderModalOpen: boolean;
+    openOrderModal: () => void;
+    closeOrderModal: () => void;
 }
 
 const DashboardContext = createContext<DashboardContextValue | null>(null);
@@ -22,6 +27,8 @@ export const DashboardProvider = ({ children }: Props) => {
     const [mode, setMode] = useState<DashboardMode>("viewer");
     const [activeQueueIds, setActiveQueueIds] = useState<number[]>([]);
     const [allQueues, setAllQueues] = useState<IQueue[]>([]);
+    const [activeStreamerId, setActiveStreamerId] = useState<number | null>(null);
+    const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
     const toggleQueue = (id: number) => {
         setActiveQueueIds((prev) =>
@@ -30,10 +37,12 @@ export const DashboardProvider = ({ children }: Props) => {
     };
 
     const clearQueues = () => setActiveQueueIds([]);
+    const openOrderModal = () => setIsOrderModalOpen(true);
+    const closeOrderModal = () => setIsOrderModalOpen(false);
 
     return (
         <DashboardContext.Provider
-            value={{ mode, setMode, activeQueueIds, toggleQueue, clearQueues, allQueues, setAllQueues }}
+            value={{ mode, setMode, activeQueueIds, toggleQueue, clearQueues, allQueues, setAllQueues, activeStreamerId, setActiveStreamerId, isOrderModalOpen, openOrderModal, closeOrderModal }}
         >
             {children}
         </DashboardContext.Provider>

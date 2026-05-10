@@ -1,0 +1,120 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.65rem 0.85rem;
+    background-color: hsla(72, 100%, 50%, 0.04);
+    border-top: 0.3px solid hsla(72, 100%, 50%, 0.2);
+    animation: slideDown 0.15s ease;
+
+    &_row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    &_input_wrap {
+        display: flex;
+        align-items: center;
+        background-color: hsla(0, 0%, 100%, 0.04);
+        border: 0.3px solid hsla(0, 0%, 30%, 0.6);
+        transition: border-color 0.2s ease;
+
+        &:focus-within {
+            border-color: hsl(72, 100%, 50%);
+        }
+    }
+
+    &_currency {
+        padding: 0 0.4rem 0 0.6rem;
+        font-size: 0.8rem;
+        color: hsla(0, 0%, 100%, 0.35);
+        flex-shrink: 0;
+    }
+
+    &_input {
+        width: 90px;
+        padding: 0.4rem 0.5rem 0.4rem 0;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: hsl(0, 0%, 100%);
+        font-family: inherit;
+        font-size: 0.85rem;
+
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+            appearance: none;
+        }
+
+        &::placeholder { color: hsla(0, 0%, 100%, 0.2); }
+
+        &__error ~ * { border-color: hsl(0, 80%, 55%); }
+    }
+
+    &_result {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: hsl(72, 100%, 50%);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        flex: 1;
+    }
+
+    &_confirm {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background-color: hsla(72, 100%, 50%, 0.12);
+        border: 0.3px solid hsla(72, 100%, 50%, 0.4);
+        color: hsl(72, 100%, 50%);
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+
+        &:hover:not(:disabled) {
+            background-color: hsla(72, 100%, 50%, 0.25);
+        }
+
+        &:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+    }
+
+    &_cancel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background: transparent;
+        border: 0.3px solid hsla(0, 0%, 30%, 0.5);
+        color: hsla(0, 0%, 100%, 0.35);
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+
+        &:hover {
+            border-color: hsla(0, 80%, 55%, 0.5);
+            color: hsl(0, 80%, 60%);
+        }
+    }
+
+    &_error {
+        font-size: 0.72rem;
+        color: hsl(0, 80%, 60%);
+    }
+
+    &_hint {
+        font-size: 0.7rem;
+        color: hsla(0, 0%, 100%, 0.25);
+    }
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}

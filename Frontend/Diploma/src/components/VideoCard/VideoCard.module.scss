@@ -164,6 +164,11 @@
                 background-color: hsla(72, 100%, 50%, 0.2);
                 border-color: hsl(72, 100%, 50%);
             }
+
+            &__active {
+                background-color: hsla(72, 100%, 50%, 0.2);
+                border-color: hsl(72, 100%, 50%);
+            }
         }
 
         &_remove {
