@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl= env("DIRECT_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  queues        Queue[]
+  orders        VideoOrder[]   @relation("ViewerOrders")
+  subscriptions Subscription[] @relation("Viewer")
+  subscribers   Subscription[] @relation("Streamer")
+}
+
+model Queue {
+  id             Int    @id @default(autoincrement())
+  label          String
+  pricePerMinute Float
+  streamerId     Int
+
+  streamer User         @relation(fields: [streamerId], references: [id], onDelete: Cascade)
+  orders   VideoOrder[]
+}
+
+model VideoOrder {
+  id             Int      @id @default(autoincrement())
+  youtubeUrl     String
+  title          String
+  thumbnail      String
+  orderedMinutes Float
+  totalMinutes   Float
+  status         String   @default("pending")
+  createdAt      DateTime @default(now())
+
+  queueId  Int
+  viewerId Int
+
+  queue  Queue @relation(fields: [queueId], references: [id], onDelete: Cascade)
+  viewer User  @relation("ViewerOrders", fields: [viewerId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id         Int @id @default(autoincrement())
+  viewerId   Int
+  streamerId Int
+
+  viewer   User @relation("Viewer",   fields: [viewerId],   references: [id], onDelete: Cascade)
+  streamer User @relation("Streamer", fields: [streamerId], references: [id], onDelete: Cascade)
+
+  @@unique([viewerId, streamerId])
+}

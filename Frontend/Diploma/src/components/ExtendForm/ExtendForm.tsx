@@ -5,21 +5,23 @@ import type { IQueue } from '../../interfaces/interfaces'
 import styles from './ExtendForm.module.scss'
 
 interface Props {
+    orderId: number
     queue: IQueue
     orderedMinutes: number
     totalMinutes: number
-    onExtend: (additionalMinutes: number) => void
+    onExtend: (orderId: number, additionalMinutes: number) => Promise<void>
     onCancel: () => void
 }
 
-const formatMinSec = (dec: number): string => {
-    const m = Math.floor(dec)
-    const s = Math.round((dec - m) * 60)
+const formatMinSec = (minutes: number): string => {
+    const m = Math.floor(minutes)
+    const s = Math.round((minutes - m) * 60)
     return `${m}:${String(s).padStart(2, '0')}`
 }
 
-const ExtendForm = ({ queue, orderedMinutes, totalMinutes, onExtend, onCancel }: Props) => {
+const ExtendForm = ({orderId, queue, orderedMinutes, totalMinutes, onExtend, onCancel }: Props) => {
     const [amount, setAmount] = useState('')
+    const [serverError, setServerError] = useState('')
 
     const amountNum = parseFloat(amount)
     const additionalMinutes = !isNaN(amountNum) && amountNum > 0
@@ -42,9 +44,17 @@ const ExtendForm = ({ queue, orderedMinutes, totalMinutes, onExtend, onCancel }:
 
     const canSubmit = amount && !error && additionalMinutes > 0
 
-    const handleConfirm = () => {
-        if (!canSubmit) return
-        onExtend(parseFloat(additionalMinutes.toFixed(2)))
+    const handleConfirm = async () => {
+        if (!canSubmit) {
+            return
+        }
+
+        setServerError('')
+        try {
+            await onExtend(orderId, parseFloat(additionalMinutes.toFixed(2)))
+        } catch (err) {
+            setServerError(err instanceof Error ? err.message : 'Failed to extend')
+        }
     }
 
     return (
@@ -89,6 +99,7 @@ const ExtendForm = ({ queue, orderedMinutes, totalMinutes, onExtend, onCancel }:
             </div>
 
             {error ? <span className={styles.form_error}>{error}</span> : null}
+            {serverError ? <span className={styles.form_error}>{serverError}</span> : null}
 
             {totalMinutes > 0 && !error && (
                 <span className={styles.form_hint}>

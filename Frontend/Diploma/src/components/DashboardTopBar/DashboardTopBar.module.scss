@@ -85,3 +85,42 @@
         }
     }
 }
+
+.topbar_dropdown {
+    position: absolute;
+    top: 100%;
+    left: 7%;
+    min-width: 240px;
+    background-color: hsl(0, 0%, 7%);
+    border: 0.3px solid hsla(0, 0%, 30%, 0.5);
+    z-index: 999;
+ 
+    &_item {
+        display: block;
+        width: 100%;
+        padding: 0.65rem 1rem;
+        background: transparent;
+        border: none;
+        border-bottom: 0.3px solid hsla(0, 0%, 30%, 0.3);
+        color: hsla(0, 0%, 100%, 0.7);
+        font-family: inherit;
+        font-size: 0.875rem;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.15s ease;
+ 
+        &:last-child { border-bottom: none; }
+ 
+        &:hover {
+            background-color: hsla(0, 0%, 100%, 0.05);
+            color: hsl(0, 0%, 100%);
+        }
+    }
+ 
+    &_empty {
+        display: block;
+        padding: 0.65rem 1rem;
+        font-size: 0.82rem;
+        color: hsla(0, 0%, 100%, 0.3);
+    }
+}

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { GoX } from 'react-icons/go'
 import { useDashboard } from '../../context/DashboardContext'
 import { useYouTube } from '../../hooks/useYouTube'
+import { ordersApi } from '../../api/api'
 
 import type { IQueue, IVideoOrder } from '../../interfaces/interfaces'
 
@@ -20,17 +21,20 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
     const [selectedQueueId, setSelectedQueueId] = useState<number | null>(queues.length > 0 ? queues[0].id : null)
     const [amount, setAmount] = useState('')
     const [durationInput, setDurationInput] = useState('')
+    const [serverError, setServerError] = useState('')
 
     const { meta, loading, error: metaError, fetchMeta, reset } = useYouTube()
 
     const urlRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const overlayRef = useRef<HTMLDivElement>(null)
 
-    const selectedQueue = queues.find((q) => q.id === selectedQueueId) ?? null
+    const selectedQueue = queues.find((queue) => queue.id === selectedQueueId) ?? null
     const minAmount = selectedQueue ? selectedQueue.pricePerMinute : 0
 
     useEffect(() => {
-        if (urlRef.current) clearTimeout(urlRef.current)
+        if (urlRef.current) {
+            clearTimeout(urlRef.current)
+        }
         
         if (!url.trim()) { 
             reset() 
@@ -77,22 +81,29 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
 
     const canSubmit = url.trim() && meta && selectedQueue && !amountError && amountNum >= minAmount && totalMinutes != 0
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!canSubmit || !meta || !selectedQueue) {
             return
         }
 
-        onSubmit({
-            youtubeUrl: url,
-            title: meta.title,
-            thumbnail: meta.thumbnail,
-            queueId: selectedQueue.id,
-            orderedMinutes: parseFloat(orderedMinutes.toFixed(2)),
-            totalMinutes: totalMinutes || orderedMinutes,
-            viewerUsername: 'me', // TODO: замінити на реального юзера з auth
-        })
+        setServerError('')
 
-        handleClose()
+        try {
+            const newOrder = await ordersApi.create({
+                youtubeUrl: url,
+                title: meta.title,
+                thumbnail: meta.thumbnail,
+                queueId: selectedQueue.id,
+                orderedMinutes: parseFloat(orderedMinutes.toFixed(2)),
+                totalMinutes,
+            })
+            onSubmit(newOrder)
+            handleClose()
+        } catch (err) {
+            setServerError(err instanceof Error ? err.message : 'Failed to place order')
+        } finally {
+            reset()
+        }
     }
 
     const handleClose = () => {
@@ -101,6 +112,7 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
         setAmount('')
         setDurationInput('')
         setSelectedQueueId(queues.length > 0 ? queues[0].id : null)
+        setServerError('')
         reset()
         closeOrderModal()
     }
@@ -182,18 +194,18 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
                     <div className={styles.field}>
                         <label className={styles.field_label}>Queue</label>
                         <div className={styles.queues}>
-                            {queues.map((q) => (
+                            {queues.map((queue) => (
                                 <button
-                                    key={ q.id }
-                                    className={`${styles.queues_item} ${selectedQueueId === q.id ? styles.queues_item__active : ''}`}
+                                    key={ queue.id }
+                                    className={`${styles.queues_item} ${selectedQueueId === queue.id ? styles.queues_item__active : ''}`}
                                     onClick={() => {
-                                        setSelectedQueueId(q.id)
+                                        setSelectedQueueId(queue.id)
                                         setAmount('')
                                     }}
                                 >
-                                    <span className={styles.queues_item_label}>{q.label}</span>
+                                    <span className={styles.queues_item_label}>{queue.label}</span>
                                     <span className={styles.queues_item_price}>
-                                        ${q.pricePerMinute}<span className={styles.queues_item_unit}>/min</span>
+                                        ${queue.pricePerMinute}<span className={styles.queues_item_unit}>/min</span>
                                     </span>
                                 </button>
                             ))}
@@ -203,11 +215,11 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
                     <div className={styles.field}>
                         <label className={styles.field_label}>
                             Amount ($)
-                            {selectedQueue && (
+                            {selectedQueue ? (
                                 <span className={styles.field_label__muted}>
                                     {' '}— min ${selectedQueue.pricePerMinute.toFixed(2)}
                                 </span>
-                            )}
+                            ) : null}
                         </label>
                         <input
                             className={`${styles.field_input} ${amountError ? styles.field_input__error : ''}`}
@@ -241,6 +253,9 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
                             </div>
                         ) : null}
                     </div>
+                    {serverError ? (
+                        <span className={styles.field_error}>{serverError}</span>
+                    ) : null}
                 </div>
 
                 <div className={styles.modal_footer}>

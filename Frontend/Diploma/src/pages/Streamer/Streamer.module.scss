@@ -56,6 +56,22 @@
             padding: 0.15rem 0.45rem;
             vertical-align: middle;
         }
+
+        &_subscribe {
+            padding: 0.4rem 1rem;
+            background-color: hsl(72, 100%, 50%);
+            border: none;
+            color: hsl(0, 0%, 0%);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+
+            &:hover {
+                background-color: hsla(72, 100%, 50%, 0.85);
+            }
+        }
     }
 
     &_queues {

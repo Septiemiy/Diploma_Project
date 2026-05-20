@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import Button from "../ui/Button/Button";
 import Input from "../ui/Input/Input";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { authApi } from "../../api/api";
 
 import styles from "./RegistrationForm.module.scss";
 
@@ -65,6 +67,9 @@ const RegistrationForm = () => {
     });
     const [errors, setErrors] = useState<FormErrors>({});
     const [touched, setTouched] = useState<Record<string, boolean>>({});
+    const [serverError, setServerError] = useState('')
+    const [loading, setLoading] = useState(false)
+    const { login } = useAuth()
     const navigate = useNavigate();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,7 +92,7 @@ const RegistrationForm = () => {
         setErrors(validate(values));
     };
 
-    const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         const allTouched = {
             username: true,
@@ -99,10 +104,21 @@ const RegistrationForm = () => {
         const validationErrors = validate(values);
         setErrors(validationErrors);
 
-        if (Object.keys(validationErrors).length === 0) {
-            // TODO: підключити API
-            navigate("/dashboard")
-            console.log("Submit:", values);
+        setLoading(true)
+        setServerError('')
+
+        try {
+            const data = await authApi.register({
+                username: values.username,
+                email: values.email,
+                password: values.password,
+            })
+            login(data.token, data.user)
+            navigate('/dashboard')
+        } catch (err) {
+            setServerError(err instanceof Error ? err.message : 'Registration failed')
+        } finally {
+            setLoading(false)
         }
     };
 
@@ -126,10 +142,10 @@ const RegistrationForm = () => {
                     type="text"
                     label="Username"
                     placeholder="your_username"
-                    value={values.username}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    error={errors.username}
+                    value={ values.username }
+                    onChange={ handleChange }
+                    onBlur={ handleBlur }
+                    error={ errors.username }
                 />
                 <Input
                     id="email"
@@ -137,10 +153,10 @@ const RegistrationForm = () => {
                     type="email"
                     label="Email"
                     placeholder="you@example.com"
-                    value={values.email}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    error={errors.email}
+                    value={ values.email }
+                    onChange={ handleChange }
+                    onBlur={ handleBlur }
+                    error={ errors.email }
                 />
                 <div className={styles.form_passwordGroup}>
                     <Input
@@ -149,10 +165,10 @@ const RegistrationForm = () => {
                         type="password"
                         label="Password"
                         placeholder="••••••••"
-                        value={values.password}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        error={errors.password}
+                        value={ values.password }
+                        onChange={ handleChange }
+                        onBlur={ handleBlur }
+                        error={ errors.password }
                     />
                 </div>
                 <Input
@@ -161,19 +177,24 @@ const RegistrationForm = () => {
                     type="password"
                     label="Confirm Password"
                     placeholder="••••••••"
-                    value={values.confirmPassword}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    error={errors.confirmPassword}
+                    value={ values.confirmPassword }
+                    onChange={ handleChange }
+                    onBlur={ handleBlur }
+                    error={ errors.confirmPassword }
                 />
             </div>
+
+            {serverError ? (
+                <span className={styles.form_serverError}>{serverError}</span>
+            ) : null}
 
             <Button 
                 variant="primary" 
                 withArrow={ true } 
                 onClick={ handleSubmit }
+                disabled={ loading }
             >
-                Create Account
+                {loading ? 'Creating account...' : 'Create Account'}
             </Button>
         </div>
     );

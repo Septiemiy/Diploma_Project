@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import Button from "../ui/Button/Button";
 import Input from "../ui/Input/Input";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { authApi } from "../../api/api";
 
 import styles from "./LoginForm.module.scss";
 
@@ -35,10 +37,13 @@ const validate = (values: FormValues): FormErrors => {
 };
 
 const LoginForm = () => {
-    const [values, setValues] = useState<FormValues>({ email: "", password: "" });
-    const [errors, setErrors] = useState<FormErrors>({});
-    const [touched, setTouched] = useState<Record<string, boolean>>({});
-    const navigate = useNavigate();
+    const [values, setValues] = useState<FormValues>({ email: "", password: "" })
+    const [errors, setErrors] = useState<FormErrors>({})
+    const [touched, setTouched] = useState<Record<string, boolean>>({})
+    const [serverError, setServerError] = useState("")
+    const [loading, setLoading] = useState(false)
+    const navigate = useNavigate()
+    const { login } = useAuth()
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -56,17 +61,24 @@ const LoginForm = () => {
         setErrors(validate(values));
     };
 
-    const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         const allTouched = { email: true, password: true };
         setTouched(allTouched);
         const validationErrors = validate(values);
         setErrors(validationErrors);
 
-        if (Object.keys(validationErrors).length === 0) {
-            // TODO: підключити API
-            navigate("/dashboard");
-            console.log("Submit:", values);
+        setLoading(true)
+        setServerError("")
+
+        try {
+            const data = await authApi.login(values)
+            login(data.token, data.user)
+            navigate('/dashboard')
+        } catch (err) {
+            setServerError(err instanceof Error ? err.message : 'Login failed')
+        } finally {
+            setLoading(false)
         }
     };
 
@@ -90,10 +102,10 @@ const LoginForm = () => {
                     type="email"
                     label="Email"
                     placeholder="you@example.com"
-                    value={values.email}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    error={errors.email}
+                    value={ values.email }
+                    onChange={ handleChange }
+                    onBlur={ handleBlur }
+                    error={ errors.email }
                 />
                 <Input
                     id="password"
@@ -101,22 +113,27 @@ const LoginForm = () => {
                     type="password"
                     label="Password"
                     placeholder="••••••••"
-                    value={values.password}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    error={errors.password}
+                    value={ values.password }
+                    onChange={ handleChange }
+                    onBlur={ handleBlur }
+                    error={ errors.password }
                 />
             </div>
+
+            {serverError ? (
+                <span className={styles.form_serverError}>{serverError}</span>
+            ) : null}
 
             <Button 
                 variant="primary" 
                 withArrow={ true } 
                 onClick={ handleSubmit }
+                disabled={ loading }
             >
-                Sign In
+                {loading ? 'Signing in...' : 'Sign In'}
             </Button>
         </div>
-    );
-};
+    )
+}
 
 export default LoginForm;

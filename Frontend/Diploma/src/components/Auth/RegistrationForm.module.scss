@@ -56,4 +56,10 @@
         flex-direction: column;
         gap: 0.5rem;
     }
+
+    &_serverError {
+        color: hsl(0, 100%, 70%);
+        font-size: 0.85rem;
+        text-align: center;
+    }
 }

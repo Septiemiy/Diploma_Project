@@ -11,7 +11,7 @@ interface Props {
     queue: IQueue
     isOwner?: boolean
     onRemove?: (orderId: number) => void
-    onExtend?: (orderId: number, additionalMinutes: number) => void
+    onExtend?: (orderId: number, additionalMinutes: number) => Promise<void>
 }
 
 const formatMinutes = (min: number) => {
@@ -25,11 +25,6 @@ const VideoCard = ({ order, queue, isOwner = false, onRemove, onExtend }: Props)
     const progressPercent = Math.min((order.orderedMinutes / order.totalMinutes) * 100, 100)
     const isFullyOrdered = order.orderedMinutes >= order.totalMinutes
     const [isExtending, setIsExtending] = useState(false)
-
-    const handleExtend = (additionalMinutes: number) => {
-        onExtend?.(order.id, additionalMinutes)
-        setIsExtending(false)
-    }
 
     return (
         <div className={styles.card}>
@@ -115,10 +110,11 @@ const VideoCard = ({ order, queue, isOwner = false, onRemove, onExtend }: Props)
             </div>
             {isExtending && (
                 <ExtendForm
+                    orderId={ order.id }
                     queue={ queue }
                     orderedMinutes={ order.orderedMinutes }
                     totalMinutes={ order.totalMinutes }
-                    onExtend={ handleExtend }
+                    onExtend={ onExtend! }
                     onCancel={() => setIsExtending(false)}
                 />
             )}

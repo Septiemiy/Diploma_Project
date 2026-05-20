@@ -11,7 +11,7 @@ interface Props {
     orders: IVideoOrder[]
     isOwner?: boolean
     onRemoveOrder?: (orderId: number) => void
-    onExtend?: (orderId: number, additionalMinutes: number) => void
+    onExtend?: (orderId: number, additionalMinutes: number) => Promise<void>
     onUpdateQueue?: (updated: IQueue) => void
     onDeleteQueue?: (queueId: number) => void
 }
@@ -78,7 +78,7 @@ const QueueSection = ({ queue, orders, isOwner = false, onRemoveOrder, onExtend,
                                 ${queue.pricePerMinute}
                                 <span className={styles.section_header_price_unit}>/min</span>
                             </span>
-                            {isOwner && (
+                            {isOwner ? (
                                 <div className={styles.section_header_actions}>
                                     <button
                                         className={styles.section_header_edit_btn}
@@ -95,7 +95,7 @@ const QueueSection = ({ queue, orders, isOwner = false, onRemoveOrder, onExtend,
                                         <GoTrash size={12} />
                                     </button>
                                 </div>
-                            )}
+                            ) : null}
                         </div>
                     </div>
                 )}

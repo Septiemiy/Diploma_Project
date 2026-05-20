@@ -6,37 +6,47 @@ import PickStreamerPage from './pages/PickStreamers/PickStreamers.tsx'
 import DashboardLayout from './components/DashboardLayout/DashboardLayout.tsx'
 import DashboardTopBar from './components/DashboardTopBar/DashboardTopBar.tsx'
 import Streamer from './pages/Streamer/Streamer.tsx'
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute.tsx'
+import SocketInit from './components/SocketInit/SocketInit.tsx'
 
 import { DashboardProvider } from './context/DashboardContext.tsx'
+import { AuthProvider } from './context/AuthContext.tsx'
+
 
 import './assests/styles/normalize.css'
 import './assests/styles/global.scss'
+
 
 const App = () => {
 
   return (
     <>
-      <DashboardProvider>
-        <Routes>
-          <Route path="/" element={ <Landing /> } />
-          <Route path="login" element={ <Login /> } />
-          <Route path="register" element={ <Registration /> } />
-          <Route 
-            path="/dashboard" 
-            element={
-              <>
-                <DashboardTopBar />
-                <DashboardLayout /> 
-              </>
-            }
-          >
-            <Route index element={<PickStreamerPage />} />
-            <Route path="streamer/:id" element={<Streamer />} />
-            <Route path="my" element={<Streamer isOwner />} />
-          </Route>
-          <Route path="*" element={ <Landing /> } />
-        </Routes>
-      </DashboardProvider>
+      <AuthProvider>
+        <DashboardProvider>
+          <SocketInit />
+          <Routes>
+            <Route path="/" element={ <Landing /> } />
+            <Route path="login" element={ <Login /> } />
+            <Route path="register" element={ <Registration /> } />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <DashboardTopBar />
+                    <DashboardLayout /> 
+                  </>
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<PickStreamerPage />} />
+              <Route path="streamer/:id" element={<Streamer />} />
+              <Route path="my" element={<Streamer isOwner />} />
+            </Route>
+            <Route path="*" element={ <Landing /> } />
+          </Routes>
+        </DashboardProvider>
+      </AuthProvider>
     </>
   )
 }
