@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useDashboard } from '../../context/DashboardContext'
+import { useSubscription } from '../../hooks/useSubscription'
 import { useRealtime } from '../../hooks/useSocket'
 import { useAuth } from '../../context/AuthContext'
 import { streamersApi, ordersApi, queuesApi } from '../../api/api'
@@ -43,6 +44,7 @@ const Streamer = ({ isOwner = false }: Props) => {
     const { id } = useParams<{ id: string }>()
     const { user } = useAuth()
     const { activeQueueIds, setAllQueues, clearQueues, setActiveStreamerId, mode } = useDashboard()
+    const { isSubscribed, toggle } = useSubscription(isOwner ? undefined : id!)
  
     const [streamer, setStreamer] = useState<IStreamer | null>(null)
     const [orders, setOrders] = useState<IVideoOrder[]>([])
@@ -219,6 +221,11 @@ const Streamer = ({ isOwner = false }: Props) => {
                         {queues.length} queues · {orders.length} videos ordered
                     </span>
                 </div>
+                {!isOwner ? (
+                    <button className={styles.page_header_subscribe} onClick={ toggle }>
+                        {isSubscribed ? 'Unsubscribe' : 'Subscribe'}
+                    </button>
+                ) : null}
             </div>
  
             {isOwner && (
