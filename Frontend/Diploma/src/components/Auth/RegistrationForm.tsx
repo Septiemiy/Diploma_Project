@@ -1,126 +1,107 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import Button from "../ui/Button/Button";
-import Input from "../ui/Input/Input";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { authApi } from "../../api/api";
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import Button from '../ui/Button/Button'
+import Input from '../ui/Input/Input'
+import { useAuth } from '../../context/AuthContext'
 
-import styles from "./RegistrationForm.module.scss";
+import styles from './RegistrationForm.module.scss'
 
 interface FormValues {
-    username: string;
-    email: string;
-    password: string;
-    confirmPassword: string;
+    username: string
+    email: string
+    password: string
+    confirmPassword: string
 }
 
 interface FormErrors {
-    username?: string;
-    email?: string;
-    password?: string;
-    confirmPassword?: string;
+    username?: string
+    email?: string
+    password?: string
+    confirmPassword?: string
 }
 
 const validate = (values: FormValues): FormErrors => {
-    const errors: FormErrors = {};
+    const errors: FormErrors = {}
 
-    if (!values.username.trim()) {
-        errors.username = "Username is required";
-    } else if (values.username.trim().length < 3) {
-        errors.username = "Username must be at least 3 characters";
-    } else if (!/^[a-zA-Z0-9_]+$/.test(values.username)) {
-        errors.username = "Only letters, numbers and underscores allowed";
-    }
+    if (!values.username.trim()) errors.username = 'Username is required'
+    else if (values.username.trim().length < 3)
+        errors.username = 'Username must be at least 3 characters'
+    else if (!/^[a-zA-Z0-9_]+$/.test(values.username))
+        errors.username = 'Only letters, numbers and underscores allowed'
 
-    if (!values.email.trim()) {
-        errors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-        errors.email = "Enter a valid email address";
-    }
+    if (!values.email.trim()) errors.email = 'Email is required'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email))
+        errors.email = 'Enter a valid email address'
 
-    if (!values.password) {
-        errors.password = "Password is required";
-    } else if (values.password.length < 8) {
-        errors.password = "Password must be at least 8 characters";
-    } else if (!/[A-Z]/.test(values.password)) {
-        errors.password = "Password must contain at least one uppercase letter";
-    } else if (!/[0-9]/.test(values.password)) {
-        errors.password = "Password must contain at least one number";
-    }
+    if (!values.password) errors.password = 'Password is required'
+    else if (values.password.length < 8)
+        errors.password = 'Password must be at least 8 characters'
+    else if (!/[A-Z]/.test(values.password))
+        errors.password = 'Must contain at least one uppercase letter'
+    else if (!/[0-9]/.test(values.password))
+        errors.password = 'Must contain at least one number'
 
-    if (!values.confirmPassword) {
-        errors.confirmPassword = "Please confirm your password";
-    } else if (values.confirmPassword !== values.password) {
-        errors.confirmPassword = "Passwords do not match";
-    }
+    if (!values.confirmPassword)
+        errors.confirmPassword = 'Please confirm your password'
+    else if (values.confirmPassword !== values.password)
+        errors.confirmPassword = 'Passwords do not match'
 
-    return errors;
-};
+    return errors
+}
 
 const RegistrationForm = () => {
+    const { register } = useAuth()
+    const navigate = useNavigate()
+
     const [values, setValues] = useState<FormValues>({
-        username: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-    });
-    const [errors, setErrors] = useState<FormErrors>({});
-    const [touched, setTouched] = useState<Record<string, boolean>>({});
+        username: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+    })
+    const [errors, setErrors] = useState<FormErrors>({})
+    const [touched, setTouched] = useState<Record<string, boolean>>({})
     const [serverError, setServerError] = useState('')
     const [loading, setLoading] = useState(false)
-    const { login } = useAuth()
-    const navigate = useNavigate();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        const updated = { ...values, [name]: value };
-        setValues(updated);
-
-        if (touched[name]) {
-            setErrors(validate(updated));
-        }
-
-        if (name === "password" && touched["confirmPassword"]) {
-            setErrors(validate(updated));
-        }
-    };
+        const { name, value } = e.target
+        const updated = { ...values, [name]: value }
+        setValues(updated)
+        if (touched[name]) setErrors(validate(updated))
+        if (name === 'password' && touched['confirmPassword'])
+            setErrors(validate(updated))
+    }
 
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-        const { name } = e.target;
-        setTouched((prev) => ({ ...prev, [name]: true }));
-        setErrors(validate(values));
-    };
+        const { name } = e.target
+        setTouched((prev) => ({ ...prev, [name]: true }))
+        setErrors(validate(values))
+    }
 
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
+        e.preventDefault()
         const allTouched = {
-            username: true,
-            email: true,
-            password: true,
-            confirmPassword: true,
-        };
-        setTouched(allTouched);
-        const validationErrors = validate(values);
-        setErrors(validationErrors);
+            username: true, email: true,
+            password: true, confirmPassword: true,
+        }
+        setTouched(allTouched)
+        const validationErrors = validate(values)
+        setErrors(validationErrors)
+        if (Object.keys(validationErrors).length > 0) return
 
         setLoading(true)
         setServerError('')
 
         try {
-            const data = await authApi.register({
-                username: values.username,
-                email: values.email,
-                password: values.password,
-            })
-            login(data.token, data.user)
+            await register(values.email, values.password, values.username)
             navigate('/dashboard')
         } catch (err) {
             setServerError(err instanceof Error ? err.message : 'Registration failed')
         } finally {
             setLoading(false)
         }
-    };
+    }
 
     return (
         <div className={styles.form}>
@@ -128,7 +109,7 @@ const RegistrationForm = () => {
                 <span className={styles.form_eyebrow}>Get started</span>
                 <h1 className={styles.form_title}>Create your account</h1>
                 <p className={styles.form_subtitle}>
-                    Already have an account?{" "}
+                    Already have an account?{' '}
                     <Link to="/login" className={styles.form_link}>
                         Sign in
                     </Link>
@@ -142,10 +123,10 @@ const RegistrationForm = () => {
                     type="text"
                     label="Username"
                     placeholder="your_username"
-                    value={ values.username }
-                    onChange={ handleChange }
-                    onBlur={ handleBlur }
-                    error={ errors.username }
+                    value={values.username}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    error={errors.username}
                 />
                 <Input
                     id="email"
@@ -153,10 +134,10 @@ const RegistrationForm = () => {
                     type="email"
                     label="Email"
                     placeholder="you@example.com"
-                    value={ values.email }
-                    onChange={ handleChange }
-                    onBlur={ handleBlur }
-                    error={ errors.email }
+                    value={values.email}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    error={errors.email}
                 />
                 <div className={styles.form_passwordGroup}>
                     <Input
@@ -165,10 +146,10 @@ const RegistrationForm = () => {
                         type="password"
                         label="Password"
                         placeholder="••••••••"
-                        value={ values.password }
-                        onChange={ handleChange }
-                        onBlur={ handleBlur }
-                        error={ errors.password }
+                        value={values.password}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={errors.password}
                     />
                 </div>
                 <Input
@@ -177,27 +158,27 @@ const RegistrationForm = () => {
                     type="password"
                     label="Confirm Password"
                     placeholder="••••••••"
-                    value={ values.confirmPassword }
-                    onChange={ handleChange }
-                    onBlur={ handleBlur }
-                    error={ errors.confirmPassword }
+                    value={values.confirmPassword}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    error={errors.confirmPassword}
                 />
             </div>
 
-            {serverError ? (
+            {serverError && (
                 <span className={styles.form_serverError}>{serverError}</span>
-            ) : null}
+            )}
 
-            <Button 
-                variant="primary" 
-                withArrow={ true } 
-                onClick={ handleSubmit }
-                disabled={ loading }
+            <Button
+                variant="primary"
+                withArrow
+                onClick={handleSubmit}
+                disabled={loading}
             >
                 {loading ? 'Creating account...' : 'Create Account'}
             </Button>
         </div>
-    );
-};
+    )
+}
 
-export default RegistrationForm;
+export default RegistrationForm

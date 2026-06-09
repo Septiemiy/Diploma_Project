@@ -28,7 +28,7 @@ const Header = () => {
                     <ModeToggle />
                     <div className={styles.header_user}>
                         <div className={styles.header_avatar}>
-                            {user?.username.slice(0, 2).toUpperCase()}
+                            {(user?.user_metadata?.username ?? user?.email ?? 'ME').slice(0, 2).toUpperCase()}
                         </div>
                         <button
                             className={styles.header_logout}

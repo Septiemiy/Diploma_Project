@@ -1,122 +1,193 @@
-const BASE_URL = import.meta.env.API_URL ?? 'http://localhost:3000/api'
-
-const getToken = () => localStorage.getItem('token')
-
-const headers = (withAuth = true): HeadersInit => ({
-    'Content-Type': 'application/json',
-    ...(withAuth && getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
-})
-
-const handleResponse = async (res: Response) => {
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.message ?? 'Something went wrong')
-    return data
-}
-
-export const authApi = {
-    register: (body: { username: string; email: string; password: string }) =>
-        fetch(`${BASE_URL}/auth/register`, {
-            method: 'POST',
-            headers: headers(false),
-            body: JSON.stringify(body),
-        }).then(handleResponse),
-
-    login: (body: { email: string; password: string }) =>
-        fetch(`${BASE_URL}/auth/login`, {
-            method: 'POST',
-            headers: headers(false),
-            body: JSON.stringify(body),
-        }).then(handleResponse),
-}
+import { supabase } from '../lib/supabase'
 
 export const streamersApi = {
-    getById: (id: number) =>
-        fetch(`${BASE_URL}/streamers/${id}`, {
-            headers: headers(),
-        }).then(handleResponse),
+    getById: async (id: string) => {
+        const { data, error } = await supabase
+            .from('users')
+            .select(`
+                id, username,
+                queues (
+                    id, label, price_per_minute,
+                    video_orders (
+                        id, youtube_url, title, thumbnail,
+                        ordered_minutes, total_minutes, status,
+                        viewer:users!viewer_id (id, username)
+                    )
+                )
+            `)
+            .eq('id', id)
+            .single()
 
-    getMe: () =>
-        fetch(`${BASE_URL}/streamers/me`, {
-            headers: headers(),
-        }).then(handleResponse),
+        if (error) throw new Error(error.message)
+        return data
+    },
 
-    search: (q: string) =>
-        fetch(`${BASE_URL}/streamers/search?q=${encodeURIComponent(q)}`, {
-            headers: headers(),
-        }).then(handleResponse),
+    getMe: async () => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('Not authenticated')
+        return streamersApi.getById(user.id)
+    },
+
+    search: async (q: string) => {
+        const { data, error } = await supabase
+            .from('users')
+            .select('id, username')
+            .ilike('username', `%${q}%`)
+            .limit(10)
+
+        if (error) throw new Error(error.message)
+        return data
+    },
 }
 
 export const queuesApi = {
-    create: (body: { label: string; pricePerMinute: number }) =>
-        fetch(`${BASE_URL}/queues`, {
-            method: 'POST',
-            headers: headers(),
-            body: JSON.stringify(body),
-        }).then(handleResponse),
+    create: async (label: string, pricePerMinute: number) => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('Not authenticated')
 
-    update: (id: number, body: { label?: string; pricePerMinute?: number }) =>
-        fetch(`${BASE_URL}/queues/${id}`, {
-            method: 'PATCH',
-            headers: headers(),
-            body: JSON.stringify(body),
-        }).then(handleResponse),
+        const { data, error } = await supabase
+            .from('queues')
+            .insert({ label, price_per_minute: pricePerMinute, streamer_id: user.id })
+            .select()
+            .single()
 
-    delete: (id: number) =>
-        fetch(`${BASE_URL}/queues/${id}`, {
-            method: 'DELETE',
-            headers: headers(),
-        }).then(handleResponse),
+        if (error) throw new Error(error.message)
+        return data
+    },
+
+    update: async (id: number, label: string, pricePerMinute: number) => {
+        const { data, error } = await supabase
+            .from('queues')
+            .update({ label, price_per_minute: pricePerMinute })
+            .eq('id', id)
+            .select()
+            .single()
+
+        if (error) throw new Error(error.message)
+        return data
+    },
+
+    delete: async (id: number) => {
+        const { error } = await supabase
+            .from('queues')
+            .delete()
+            .eq('id', id)
+
+        if (error) throw new Error(error.message)
+    },
 }
 
 export const ordersApi = {
-    create: (body: {
+    create: async (body: {
         youtubeUrl: string
         title: string
         thumbnail: string
         queueId: number
         orderedMinutes: number
         totalMinutes: number
-    }) =>
-        fetch(`${BASE_URL}/orders`, {
-            method: 'POST',
-            headers: headers(),
-            body: JSON.stringify(body),
-        }).then(handleResponse),
+    }) => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('Not authenticated')
 
-    extend: (id: number, additionalMinutes: number) =>
-        fetch(`${BASE_URL}/orders/${id}/extend`, {
-            method: 'PATCH',
-            headers: headers(),
-            body: JSON.stringify({ additionalMinutes }),
-        }).then(handleResponse),
+        const { data, error } = await supabase
+            .from('video_orders')
+            .insert({
+                youtube_url: body.youtubeUrl,
+                title: body.title,
+                thumbnail: body.thumbnail,
+                queue_id: body.queueId,
+                viewer_id: user.id,
+                ordered_minutes: body.orderedMinutes,
+                total_minutes: body.totalMinutes,
+                status: 'pending',
+            })
+            .select()
+            .single()
 
-    delete: (id: number) =>
-        fetch(`${BASE_URL}/orders/${id}`, {
-            method: 'DELETE',
-            headers: headers(),
-        }).then(handleResponse),
+        if (error) throw new Error(error.message)
+        return data
+    },
+
+    extend: async (id: number, additionalMinutes: number) => {
+        const { data: order, error: fetchError } = await supabase
+            .from('video_orders')
+            .select('ordered_minutes')
+            .eq('id', id)
+            .single()
+
+        if (fetchError) throw new Error(fetchError.message)
+
+        const newMinutes = parseFloat(
+            (order.ordered_minutes + additionalMinutes).toFixed(2)
+        )
+
+        const { error } = await supabase
+            .from('video_orders')
+            .update({ ordered_minutes: newMinutes })
+            .eq('id', id)
+
+        if (error) throw new Error(error.message)
+        return { orderId: id, newMinutes }
+    },
+
+    delete: async (id: number) => {
+        const { error } = await supabase
+            .from('video_orders')
+            .delete()
+            .eq('id', id)
+
+        if (error) throw new Error(error.message)
+    },
 }
 
 export const subscriptionsApi = {
-    getMySubscriptions: () =>
-        fetch(`${BASE_URL}/subscriptions/my`, {
-            headers: headers(),
-        }).then(handleResponse),
+    getMySubscriptions: async () => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('Not authenticated')
 
-    getMySubscribers: () =>
-        fetch(`${BASE_URL}/subscriptions/subscribers`, {
-            headers: headers(),
-        }).then(handleResponse),
+        const { data, error } = await supabase
+            .from('subscriptions')
+            .select('streamer:users!streamer_id (id, username)')
+            .eq('viewer_id', user.id)
 
-    subscribe: (streamerId: number) =>
-        fetch(`${BASE_URL}/subscriptions/${streamerId}`, {
-            method: 'POST',
-            headers: headers(),
-        }).then(handleResponse),
+        if (error) throw new Error(error.message)
+        return data?.map((s: any) => s.streamer) ?? []
+    },
 
-    unsubscribe: (streamerId: number) =>
-        fetch(`${BASE_URL}/subscriptions/${streamerId}`, {
-            method: 'DELETE',
-            headers: headers(),
-        }).then(handleResponse),
+    getMySubscribers: async () => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('Not authenticated')
+
+        const { data, error } = await supabase
+            .from('subscriptions')
+            .select('viewer:users!viewer_id (id, username)')
+            .eq('streamer_id', user.id)
+
+        if (error) throw new Error(error.message)
+        return data?.map((s: any) => s.viewer) ?? []
+    },
+
+    subscribe: async (streamerId: string) => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('Not authenticated')
+
+        const { error } = await supabase
+            .from('subscriptions')
+            .upsert({ viewer_id: user.id, streamer_id: streamerId })
+
+        if (error) throw new Error(error.message)
+    },
+
+    unsubscribe: async (streamerId: string) => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('Not authenticated')
+
+        const { error } = await supabase
+            .from('subscriptions')
+            .delete()
+            .eq('viewer_id', user.id)
+            .eq('streamer_id', streamerId)
+
+        if (error) throw new Error(error.message)
+    },
 }

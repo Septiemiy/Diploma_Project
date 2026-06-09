@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
-import  Landing  from './pages/Landing/Landing.tsx'
+
+import Landing  from './pages/Landing/Landing.tsx'
 import Login from './pages/Login/Login.tsx'
 import Registration from './pages/Registration/Registration.tsx'
 import PickStreamerPage from './pages/PickStreamers/PickStreamers.tsx'
@@ -7,7 +8,6 @@ import DashboardLayout from './components/DashboardLayout/DashboardLayout.tsx'
 import DashboardTopBar from './components/DashboardTopBar/DashboardTopBar.tsx'
 import Streamer from './pages/Streamer/Streamer.tsx'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute.tsx'
-import SocketInit from './components/SocketInit/SocketInit.tsx'
 
 import { DashboardProvider } from './context/DashboardContext.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
@@ -23,7 +23,6 @@ const App = () => {
     <>
       <AuthProvider>
         <DashboardProvider>
-          <SocketInit />
           <Routes>
             <Route path="/" element={ <Landing /> } />
             <Route path="login" element={ <Login /> } />

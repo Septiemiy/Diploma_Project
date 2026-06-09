@@ -1,54 +1,87 @@
 import { useEffect, useRef } from 'react'
-import { io, Socket } from 'socket.io-client'
-import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabase'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
-const SOCKET_URL = import.meta.env.API_URL
-    ? import.meta.env.API_URL.replace('/api', '')
-    : 'http://localhost:4000'
+interface UseRealtimeProps {
+    streamerId: string | null
+    onOrderCreated?: (order: any) => void
+    onOrderExtended?: (data: { orderId: number; newMinutes: number }) => void
+    onOrderRemoved?: (data: { orderId: number }) => void
+    onQueueCreated?: (queue: any) => void
+    onQueueUpdated?: (queue: any) => void
+    onQueueDeleted?: (data: { queueId: number }) => void
+}
 
-let socket: Socket | null = null
-
-export const useSocket = () => {
-    const { token } = useAuth()
-    const socketRef = useRef<Socket | null>(null)
+export const useRealtime = ({ streamerId, onOrderCreated, onOrderExtended, onOrderRemoved, onQueueCreated, onQueueUpdated, onQueueDeleted,
+}: UseRealtimeProps) => {
+    const channelRef = useRef<RealtimeChannel | null>(null)
 
     useEffect(() => {
-        if (!token) return
+        if (!streamerId) return
 
-        if (!socket) {
-            socket = io(SOCKET_URL, {
-                auth: { token },
-                autoConnect: true,
+        const channel = supabase
+            .channel(`streamer-${streamerId}`)
+
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'video_orders',
+                filter: `queue_id=in.(select id from queues where streamer_id=eq.${streamerId})`,
+            }, (payload) => {
+                onOrderCreated?.(payload.new)
             })
-        }
 
-        socketRef.current = socket
+            .on('postgres_changes', {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'video_orders',
+            }, (payload) => {
+                onOrderExtended?.({
+                    orderId: payload.new.id,
+                    newMinutes: payload.new.ordered_minutes,
+                })
+            })
 
-        socket.on('connect', () => {
-            console.log('Socket connected:', socket?.id)
-        })
+            .on('postgres_changes', {
+                event: 'DELETE',
+                schema: 'public',
+                table: 'video_orders',
+            }, (payload) => {
+                onOrderRemoved?.({ orderId: payload.old.id })
+            })
 
-        socket.on('connect_error', (err) => {
-            console.error('Socket error:', err.message)
-        })
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'queues',
+                filter: `streamer_id=eq.${streamerId}`,
+            }, (payload) => {
+                onQueueCreated?.(payload.new)
+            })
+
+            .on('postgres_changes', {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'queues',
+                filter: `streamer_id=eq.${streamerId}`,
+            }, (payload) => {
+                onQueueUpdated?.(payload.new)
+            })
+
+            .on('postgres_changes', {
+                event: 'DELETE',
+                schema: 'public',
+                table: 'queues',
+            }, (payload) => {
+                onQueueDeleted?.({ queueId: payload.old.id })
+            })
+
+            .subscribe()
+
+        channelRef.current = channel
 
         return () => {
-            
+            supabase.removeChannel(channel)
         }
-    }, [token])
-
-    const joinRoom = (streamerId: number) => {
-        socket?.emit('join-room', { streamerId })
-    }
-
-    const leaveRoom = (streamerId: number) => {
-        socket?.emit('leave-room', { streamerId })
-    }
-
-    const disconnect = () => {
-        socket?.disconnect()
-        socket = null
-    }
-
-    return { socket: socketRef.current, joinRoom, leaveRoom, disconnect }
+    }, [streamerId])
 }

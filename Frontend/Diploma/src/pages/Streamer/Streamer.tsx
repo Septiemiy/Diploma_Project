@@ -216,7 +216,7 @@ const Streamer = ({ isOwner = false }: Props) => {
     const handleAddOrder = async (order: Omit<IVideoOrder, 'id' | 'status'>) => {
         try {
             const newOrder = await ordersApi.create(order)
-            setOrders((prev) => [...prev, newOrder])
+            
         } catch (err) {
             console.error(err)
         }
