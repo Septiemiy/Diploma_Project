@@ -31,7 +31,7 @@ interface Props {
     onSubmit: (order: Omit<IVideoOrder, 'id' | 'status'>) => void
 }
 
-const OrderModal = ({ queues, onSubmit }: Props) => {
+const OrderModal = ({ queues }: Props) => {
     const { isOrderModalOpen, closeOrderModal } = useDashboard()
 
     const [url, setUrl] = useState('')
@@ -99,6 +99,7 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
                 orderedMinutes: parseFloat(orderedMinutes.toFixed(2)),
                 totalMinutes,
             })
+            console.log('Order created:', newOrder)
             handleClose()
         } catch (err) {
             setServerError(err instanceof Error ? err.message : 'Failed to place order')
