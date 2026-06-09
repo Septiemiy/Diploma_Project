@@ -1,10 +1,6 @@
 import { createContext, useContext, useState } from "react";
 
-import type { DashboardMode, IQueue } from "../interfaces/interfaces"
-
-interface Props {
-    children: React.ReactNode;
-}
+import type { DashboardMode, IQueue } from "../interfaces/interfaces";
 
 interface DashboardContextValue {
     mode: DashboardMode;
@@ -14,8 +10,8 @@ interface DashboardContextValue {
     clearQueues: () => void;
     allQueues: IQueue[];
     setAllQueues: (queues: IQueue[]) => void;
-    activeStreamerId: number | null;
-    setActiveStreamerId: (id: number | null) => void;
+    activeStreamerId: string | null;
+    setActiveStreamerId: (id: string | null) => void;
     isOrderModalOpen: boolean;
     openOrderModal: () => void;
     closeOrderModal: () => void;
@@ -23,11 +19,11 @@ interface DashboardContextValue {
 
 const DashboardContext = createContext<DashboardContextValue | null>(null);
 
-export const DashboardProvider = ({ children }: Props) => {
+export const DashboardProvider = ({ children }: { children: React.ReactNode }) => {
     const [mode, setMode] = useState<DashboardMode>("viewer");
     const [activeQueueIds, setActiveQueueIds] = useState<number[]>([]);
     const [allQueues, setAllQueues] = useState<IQueue[]>([]);
-    const [activeStreamerId, setActiveStreamerId] = useState<number | null>(null);
+    const [activeStreamerId, setActiveStreamerId] = useState<string | null>(null);
     const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
     const toggleQueue = (id: number) => {
@@ -42,7 +38,13 @@ export const DashboardProvider = ({ children }: Props) => {
 
     return (
         <DashboardContext.Provider
-            value={{ mode, setMode, activeQueueIds, toggleQueue, clearQueues, allQueues, setAllQueues, activeStreamerId, setActiveStreamerId, isOrderModalOpen, openOrderModal, closeOrderModal }}
+            value={{
+                mode, setMode,
+                activeQueueIds, toggleQueue, clearQueues,
+                allQueues, setAllQueues,
+                activeStreamerId, setActiveStreamerId,
+                isOrderModalOpen, openOrderModal, closeOrderModal,
+            }}
         >
             {children}
         </DashboardContext.Provider>
@@ -51,8 +53,6 @@ export const DashboardProvider = ({ children }: Props) => {
 
 export const useDashboard = () => {
     const ctx = useContext(DashboardContext);
-    if (!ctx) { 
-        throw new Error("useDashboard hook must be used inside DashboardProvider");
-    }
+    if (!ctx) throw new Error("useDashboard must be used inside DashboardProvider");
     return ctx;
 };

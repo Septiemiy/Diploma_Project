@@ -1,24 +1,22 @@
 import { useState, useEffect } from 'react'
 import { subscriptionsApi } from '../api/api'
 
-export const useSubscription = (streamerId: number | undefined) => {
+export const useSubscription = (streamerId: string | undefined) => {
     const [isSubscribed, setIsSubscribed] = useState(false)
+    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
-        if (!streamerId) {
-            return
-        }
-
-        subscriptionsApi.getMySubscriptions().then((list: { id: number }[]) => {
-            setIsSubscribed(list.some((streamer) => streamer.id === streamerId))
-        }).catch(console.error)
+        if (!streamerId) return
+        subscriptionsApi.getMySubscriptions()
+            .then((list: { id: string }[]) => {
+                setIsSubscribed(list.some((s) => s.id === streamerId))
+            })
+            .catch(console.error)
     }, [streamerId])
 
     const toggle = async () => {
-        if (!streamerId) {
-            return
-        }
-        
+        if (!streamerId) return
+        setLoading(true)
         try {
             if (isSubscribed) {
                 await subscriptionsApi.unsubscribe(streamerId)
@@ -29,8 +27,10 @@ export const useSubscription = (streamerId: number | undefined) => {
             }
         } catch (err) {
             console.error(err)
+        } finally {
+            setLoading(false)
         }
     }
 
-    return { isSubscribed, toggle }
+    return { isSubscribed, toggle, loading }
 }

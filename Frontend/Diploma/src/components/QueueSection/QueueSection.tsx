@@ -19,7 +19,7 @@ interface Props {
 const QueueSection = ({ queue, orders, isOwner = false, onRemoveOrder, onExtend, onUpdateQueue, onDeleteQueue }: Props) => {
     const [editing, setEditing] = useState(false)
     const [label, setLabel] = useState(queue.label)
-    const [price, setPrice] = useState(String(queue.pricePerMinute))
+    const [price, setPrice] = useState(String(queue.price_per_minute))
 
     const handleSave = () => {
         const p = parseFloat(price)
@@ -28,13 +28,13 @@ const QueueSection = ({ queue, orders, isOwner = false, onRemoveOrder, onExtend,
             return
         }
 
-        onUpdateQueue?.({ ...queue, label: label.trim(), pricePerMinute: p })
+        onUpdateQueue?.({ ...queue, label: label.trim(), price_per_minute: p })
         setEditing(false)
     }
 
     const handleCancel = () => {
         setLabel(queue.label)
-        setPrice(String(queue.pricePerMinute))
+        setPrice(String(queue.price_per_minute))
         setEditing(false)
     }
 
@@ -75,7 +75,7 @@ const QueueSection = ({ queue, orders, isOwner = false, onRemoveOrder, onExtend,
                         </div>
                         <div className={styles.section_header_right}>
                             <span className={styles.section_header_price}>
-                                ${queue.pricePerMinute}
+                                ${queue.price_per_minute}
                                 <span className={styles.section_header_price_unit}>/min</span>
                             </span>
                             {isOwner ? (

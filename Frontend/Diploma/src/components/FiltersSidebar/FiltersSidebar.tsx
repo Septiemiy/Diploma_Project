@@ -35,7 +35,7 @@ const FiltersSidebar = () => {
                             >
                                 <span className={styles.sidebar_item_label}>{queue.label}</span>
                                 <span className={styles.sidebar_item_price}>
-                                    ${queue.pricePerMinute}
+                                    ${queue.price_per_minute}
                                     <span className={styles.sidebar_item_unit}>/min</span>
                                 </span>
                             </button>

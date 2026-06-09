@@ -1,247 +1,209 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useDashboard } from '../../context/DashboardContext'
-import QueueSection from '../../components/QueueSection/QueueSection'
-import { ordersApi, queuesApi, streamersApi } from '../../api/api'
-import { GoPlus, GoCheck, GoX } from 'react-icons/go'
-import OrderModal from '../../components/OrderModel/OrderModal'
+import { useRealtime } from '../../hooks/useSocket'
 import { useAuth } from '../../context/AuthContext'
-import { useSocket } from '../../hooks/useSocket'
+import { streamersApi, ordersApi, queuesApi } from '../../api/api'
+import QueueSection from '../../components/QueueSection/QueueSection'
+import OrderModal from '../../components/OrderModel/OrderModal'
+import { GoPlus, GoCheck, GoX } from 'react-icons/go'
 
 import type { IStreamer, IVideoOrder, IQueue } from '../../interfaces/interfaces'
 
 import styles from './Streamer.module.scss'
 import formStyles from './AddQueueForm.module.scss'
-import { useSubscription } from '../../hooks/useSubscription'
-
 
 
 interface Props {
     isOwner?: boolean
 }
-
+ 
+const normalizeQueue = (q: any): IQueue => ({
+    id: q.id,
+    label: q.label,
+    price_per_minute: q.price_per_minute,
+    pricePerMinute: q.price_per_minute,
+})
+ 
+const normalizeOrder = (o: any, queueId: number): IVideoOrder => ({
+    id: o.id,
+    youtube_url: o.youtube_url,
+    title: o.title,
+    thumbnail: o.thumbnail,
+    ordered_minutes: o.ordered_minutes,
+    total_minutes: o.total_minutes,
+    queue_id: queueId,
+    queueId: queueId,
+    status: o.status,
+    viewer: Array.isArray(o.viewer) ? o.viewer[0] : o.viewer,
+    viewerUsername: Array.isArray(o.viewer) ? o.viewer[0]?.username : o.viewer?.username,
+})
+ 
 const Streamer = ({ isOwner = false }: Props) => {
     const { id } = useParams<{ id: string }>()
+    const { user } = useAuth()
     const { activeQueueIds, setAllQueues, clearQueues, setActiveStreamerId, mode } = useDashboard()
-    const { isSubscribed, toggle } = useSubscription(isOwner ? undefined : Number(id))
+ 
     const [streamer, setStreamer] = useState<IStreamer | null>(null)
     const [orders, setOrders] = useState<IVideoOrder[]>([])
     const [queues, setQueues] = useState<IQueue[]>([])
     const [loading, setLoading] = useState(true)
-    const { user } = useAuth()
-    const { joinRoom, leaveRoom, socket } = useSocket()
-    const streamerId = isOwner ? user?.id : Number(id)
-
+ 
+    const streamerId = isOwner ? user?.id : id
+ 
+    useRealtime({
+        streamerId: streamerId ?? null,
+        onOrderCreated: (order) => {
+            setOrders((prev) => [...prev, normalizeOrder(order, order.queue_id)])
+        },
+        onOrderExtended: ({ orderId, newMinutes }) => {
+            setOrders((prev) =>
+                prev.map((o) =>
+                    o.id === orderId
+                        ? { ...o, ordered_minutes: newMinutes, orderedMinutes: newMinutes }
+                        : o
+                )
+            )
+        },
+        onOrderRemoved: ({ orderId }) => {
+            setOrders((prev) => prev.filter((o) => o.id !== orderId))
+        },
+        onQueueCreated: (queue) => {
+            setQueues((prev) => {
+                const updated = [...prev, normalizeQueue(queue)].sort(
+                    (a, b) => (b.price_per_minute) - (a.price_per_minute)
+                )
+                setAllQueues(updated)
+                return updated
+            })
+        },
+        onQueueUpdated: (queue) => {
+            setQueues((prev) => {
+                const updated = prev
+                    .map((q) => (q.id === queue.id ? normalizeQueue(queue) : q))
+                    .sort((a, b) => b.price_per_minute - a.price_per_minute)
+                setAllQueues(updated)
+                return updated
+            })
+        },
+        onQueueDeleted: ({ queueId }) => {
+            setQueues((prev) => {
+                const updated = prev.filter((q) => q.id !== queueId)
+                setAllQueues(updated)
+                return updated
+            })
+            setOrders((prev) => prev.filter((o) => o.queue_id !== queueId))
+        },
+    })
+ 
     useEffect(() => {
-        if(!streamerId) {
-            return
-        }
-
+        if (!streamerId) return
+ 
         setLoading(true)
         setStreamer(null)
         setOrders([])
         setQueues([])
         clearQueues()
-
-        const fetch = isOwner ? streamersApi.getMe() : streamersApi.getById(streamerId)
  
-        fetch.then((data) => {
-                const sorted = [...data.queues].sort(
-                    (a: IQueue, b: IQueue) => b.pricePerMinute - a.pricePerMinute
-                )
-                setStreamer(data)
-                setQueues(sorted)
-                setAllQueues(sorted)
+        const fetchFn = isOwner ? streamersApi.getMe() : streamersApi.getById(streamerId)
  
-                const allOrders = data.queues.flatMap((queue: IQueue & { orders: IVideoOrder[] }) => 
-                    queue.orders.map((order: IVideoOrder) => ({ ...order, queueId: queue.id }))
+        fetchFn
+            .then((data: any) => {
+                const normalized: IStreamer = {
+                    id: data.id,
+                    username: data.username,
+                    queues: data.queues,
+                }
+                setStreamer(normalized)
+ 
+                const normalizedQueues = data.queues
+                    .map(normalizeQueue)
+                    .sort((a: IQueue, b: IQueue) => b.price_per_minute - a.price_per_minute)
+ 
+                setQueues(normalizedQueues)
+                setAllQueues(normalizedQueues)
+ 
+                const allOrders = data.queues.flatMap((q: any) =>
+                    (q.video_orders ?? []).map((o: any) => normalizeOrder(o, q.id))
                 )
                 setOrders(allOrders)
  
-                if (!isOwner) {
-                    setActiveStreamerId(streamerId)
-                }
+                if (!isOwner) setActiveStreamerId(streamerId)
             })
             .catch(console.error)
             .finally(() => setLoading(false))
  
         return () => {
-            if (!isOwner) {
-                setActiveStreamerId(null)
-            }
+            if (!isOwner) setActiveStreamerId(null)
         }
     }, [streamerId])
  
-    useEffect(() => {
-        if (!streamerId) {
-            return
-        }
-
-        joinRoom(streamerId)
-        
-        return () => leaveRoom(streamerId)
-    }, [streamerId])
- 
-    useEffect(() => {
-        if (!socket) {
-            return
-        }
- 
-        socket.on('order:created', (order: IVideoOrder) => {
-            setOrders((prev) => [...prev, order])
-        })
- 
-        socket.on('order:extended', ({ orderId, newMinutes }: { orderId: number; newMinutes: number }) => {
-            setOrders((prev) => prev.map((order) =>
-                    order.id === orderId ? { ...order, orderedMinutes: newMinutes } : order
-                )
-            )
-        })
- 
-        socket.on('order:removed', ({ orderId }: { orderId: number }) => {
-            setOrders((prev) => prev.filter((order) => order.id !== orderId))
-        })
- 
-        socket.on('queue:created', (queue: IQueue) => {
-            setQueues((prev) => {
-                const updated = [...prev, queue].sort(
-                    (a, b) => b.pricePerMinute - a.pricePerMinute
-                )
-                setAllQueues(updated)
-                return updated
-            })
-        })
- 
-        socket.on('queue:updated', (queue: IQueue) => {
-            setQueues((prev) => {
-                const updated = prev
-                    .map((updatedQueue) => (updatedQueue.id === queue.id ? queue : updatedQueue))
-                    .sort((a, b) => b.pricePerMinute - a.pricePerMinute)
-                setAllQueues(updated)
-                return updated
-            })
-        })
- 
-        socket.on('queue:deleted', ({ queueId }: { queueId: number }) => {
-            setQueues((prev) => {
-                const updated = prev.filter((updatedQueue) => updatedQueue.id !== queueId)
-                setAllQueues(updated)
-                return updated
-            })
-            setOrders((prev) => prev.filter((order) => order.queueId !== queueId))
-        })
- 
-        return () => {
-            socket.off('order:created')
-            socket.off('order:extended')
-            socket.off('order:removed')
-            socket.off('queue:created')
-            socket.off('queue:updated')
-            socket.off('queue:deleted')
-        }
-    }, [socket])
-
     const handleRemoveOrder = async (orderId: number) => {
         try {
             await ordersApi.delete(orderId)
-            setOrders((prev) => prev.filter((order) => order.id !== orderId))
-        } catch (err) {
-            console.error(err)
-        }
+            setOrders((prev) => prev.filter((o) => o.id !== orderId))
+        } catch (err) { console.error(err) }
     }
-
+ 
     const handleExtend = async (orderId: number, additionalMinutes: number) => {
         try {
             const { newMinutes } = await ordersApi.extend(orderId, additionalMinutes)
             setOrders((prev) =>
-                prev.map((order) =>
-                    order.id === orderId ? { ...order, orderedMinutes: newMinutes } : order
+                prev.map((o) =>
+                    o.id === orderId ? { ...o, ordered_minutes: newMinutes } : o
                 )
             )
-        } catch (err) {
-            console.error(err)
-        }
+        } catch (err) { console.error(err) }
     }
-
-    const handleAddQueue = async (queue: IQueue) => {
+ 
+    const handleAddOrder = async (order: Omit<IVideoOrder, 'id' | 'status'>) => {
         try {
-            const newQueue = await queuesApi.create({
-                label: queue.label,
-                pricePerMinute: queue.pricePerMinute,
+            await ordersApi.create({
+                youtubeUrl: order.youtube_url,
+                title: order.title,
+                thumbnail: order.thumbnail,
+                queueId: order.queue_id,
+                orderedMinutes: order.ordered_minutes,
+                totalMinutes: order.total_minutes,
             })
-            setQueues((prev) => {
-                const updated = [...prev, newQueue].sort(
-                    (a, b) => b.pricePerMinute - a.pricePerMinute
-                )
-                setAllQueues(updated)
-                return updated
-            })
-        } catch (err) {
-            console.error(err)
-        }
+        } catch (err) { console.error(err) }
     }
-
+ 
+    const handleAddQueue = async (queue: { label: string; price_per_minute: number }) => {
+        try {
+            await queuesApi.create(queue.label, queue.price_per_minute)
+        } catch (err) { console.error(err) }
+    }
+ 
     const handleUpdateQueue = async (updated: IQueue) => {
         try {
-            const result = await queuesApi.update(updated.id, {
-                label: updated.label,
-                pricePerMinute: updated.pricePerMinute,
-            })
-            setQueues((prev) => {
-                const next = prev
-                    .map((queue) => (queue.id === result.id ? result : queue))
-                    .sort((a, b) => b.pricePerMinute - a.pricePerMinute)
-                setAllQueues(next)
-                return next
-            })
-        } catch (err) {
-            console.error(err)
-        }
+            await queuesApi.update(
+                updated.id,
+                updated.label,
+                updated.price_per_minute
+            )
+        } catch (err) { console.error(err) }
     }
-
+ 
     const handleDeleteQueue = async (queueId: number) => {
         try {
             await queuesApi.delete(queueId)
             setQueues((prev) => {
-                const next = prev.filter((queue) => queue.id !== queueId)
+                const next = prev.filter((q) => q.id !== queueId)
                 setAllQueues(next)
                 return next
             })
-            setOrders((prev) => prev.filter((order) => order.queueId !== queueId))
-        } catch (err) {
-            console.error(err)
-        }
+            setOrders((prev) => prev.filter((o) => o.queue_id !== queueId))
+        } catch (err) { console.error(err) }
     }
-
-    const handleAddOrder = async (order: Omit<IVideoOrder, 'id' | 'status'>) => {
-        try {
-            const newOrder = await ordersApi.create(order)
-            
-        } catch (err) {
-            console.error(err)
-        }
-    }
-
-    if (!streamer) {
-        return (
-            <div className={styles.loading}>
-                <span>Streamer not found</span>
-            </div>
-        )
-    }
-
-    if (loading) {
-        return (
-            <div className={styles.loading}>
-                <span>Loading...</span>
-            </div>
-        )
-    }
-
+ 
+    if (loading) return <div className={styles.loading}><span>Loading...</span></div>
+    if (!streamer) return <div className={styles.loading}><span>Streamer not found</span></div>
+ 
     const visibleQueues = activeQueueIds.length > 0
-            ? queues.filter((queue) => activeQueueIds.includes(queue.id))
-            : queues
-
+        ? queues.filter((q) => activeQueueIds.includes(q.id))
+        : queues
+ 
     return (
         <div className={styles.page}>
             <div className={styles.page_header}>
@@ -251,51 +213,43 @@ const Streamer = ({ isOwner = false }: Props) => {
                 <div className={styles.page_header_info}>
                     <h1 className={styles.page_header_name}>
                         {streamer.username}
-                        
-                        {isOwner ? (
-                            <span className={styles.page_header_badge}>You</span>
-                        ) : null}
+                        {isOwner && <span className={styles.page_header_badge}>You</span>}
                     </h1>
                     <span className={styles.page_header_meta}>
                         {queues.length} queues · {orders.length} videos ordered
                     </span>
                 </div>
-                {!isOwner ? (
-                    <button className={styles.page_header_subscribe} onClick={ toggle }>
-                        {isSubscribed ? 'Unsubscribe' : 'Subscribe'}
-                    </button>
-                ) : null}
             </div>
-
-            {isOwner ? (
-                <AddQueueForm onAdd={handleAddQueue} existingIds={queues.map((q) => q.id)} />
-            ) : null}
-
+ 
+            {isOwner && (
+                <AddQueueForm
+                    onAdd={handleAddQueue}
+                    existingIds={queues.map((q) => q.id)}
+                />
+            )}
+ 
             {visibleQueues.length === 0 ? (
-                <div className={styles.page_empty}>
-                    No queues match the selected filter.
-                </div>
+                <div className={styles.page_empty}>No queues match the selected filter.</div>
             ) : (
                 <div className={styles.page_queues}>
                     {visibleQueues.map((queue) => (
                         <QueueSection
-                            key={ queue.id }
-                            queue={ queue }
-                            orders={ orders.filter((order) => order.queueId === queue.id) }
-                            onRemoveOrder={ handleRemoveOrder }
-                            onExtend={ !isOwner ? handleExtend : undefined }
-                            onUpdateQueue={ isOwner ? handleUpdateQueue : undefined }
-                            onDeleteQueue={ isOwner ? handleDeleteQueue : undefined }
-                            isOwner={ isOwner }
+                            key={queue.id}
+                            queue={queue}
+                            orders={orders.filter((o) => o.queue_id === queue.id)}
+                            isOwner={isOwner}
+                            onRemoveOrder={handleRemoveOrder}
+                            onExtend={!isOwner ? handleExtend : undefined}
+                            onUpdateQueue={isOwner ? handleUpdateQueue : undefined}
+                            onDeleteQueue={isOwner ? handleDeleteQueue : undefined}
                         />
                     ))}
                 </div>
             )}
-            <div>
-                {!isOwner && mode === 'viewer' ? (
-                    <OrderModal queues={queues} onSubmit={handleAddOrder} />
-                ) : null}
-            </div>
+ 
+            {!isOwner && mode === 'viewer' && (
+                <OrderModal queues={queues} onSubmit={handleAddOrder} />
+            )}
         </div>
     )
 }
@@ -322,7 +276,7 @@ const AddQueueForm = ({ onAdd }: AddQueueFormProps) => {
             return setError('Enter a valid price')
         }
 
-        onAdd({ id: Date.now(), label: label.trim(), pricePerMinute: p })
+        onAdd({ id: Date.now(), label: label.trim(), price_per_minute: p })
 
         setLabel('')
         setPrice('')

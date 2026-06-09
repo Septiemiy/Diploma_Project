@@ -1,12 +1,30 @@
 import { useState, useEffect, useRef } from 'react'
-import { GoX } from 'react-icons/go'
+import { GoX, GoLinkExternal } from 'react-icons/go'
 import { useDashboard } from '../../context/DashboardContext'
 import { useYouTube } from '../../hooks/useYouTube'
 import { ordersApi } from '../../api/api'
-
 import type { IQueue, IVideoOrder } from '../../interfaces/interfaces'
-
 import styles from './OrderModal.module.scss'
+
+const parseDuration = (val: string): number | null => {
+    const trimmed = val.trim()
+    if (!trimmed) return null
+    const mmss = trimmed.match(/^(\d+):([0-5]?\d)$/)
+    if (mmss) {
+        const mins = parseInt(mmss[1], 10)
+        const secs = parseInt(mmss[2], 10)
+        return mins + secs / 60
+    }
+    const num = parseFloat(trimmed)
+    if (!isNaN(num) && num > 0) return num
+    return null
+}
+
+const formatMinSec = (dec: number): string => {
+    const m = Math.floor(dec)
+    const s = Math.round((dec - m) * 60)
+    return `${m}:${String(s).padStart(2, '0')}`
+}
 
 interface Props {
     queues: IQueue[]
@@ -18,74 +36,59 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
 
     const [url, setUrl] = useState('')
     const [urlTouched, setUrlTouched] = useState(false)
-    const [selectedQueueId, setSelectedQueueId] = useState<number | null>(queues.length > 0 ? queues[0].id : null)
+    const [selectedQueueId, setSelectedQueueId] = useState<number | null>(
+        queues.length > 0 ? queues[0].id : null
+    )
     const [amount, setAmount] = useState('')
     const [durationInput, setDurationInput] = useState('')
     const [serverError, setServerError] = useState('')
+    const [submitting, setSubmitting] = useState(false)
 
     const { meta, loading, error: metaError, fetchMeta, reset } = useYouTube()
-
-    const urlRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const urlDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const overlayRef = useRef<HTMLDivElement>(null)
 
-    const selectedQueue = queues.find((queue) => queue.id === selectedQueueId) ?? null
-    const minAmount = selectedQueue ? selectedQueue.pricePerMinute : 0
+    const selectedQueue = queues.find((q) => q.id === selectedQueueId) ?? null
+    const minAmount = selectedQueue ? selectedQueue.price_per_minute : 0
 
+    // Автофетч при вводі URL
     useEffect(() => {
-        if (urlRef.current) {
-            clearTimeout(urlRef.current)
-        }
-        
-        if (!url.trim()) { 
-            reset() 
-            return 
-        }
-
-        urlRef.current = setTimeout(() => {
-            fetchMeta(url)
-        }, 800)
-
-        return () => {
-            if (urlRef.current) {
-                clearTimeout(urlRef.current)
-            }
-        }
+        if (urlDebounceRef.current) clearTimeout(urlDebounceRef.current)
+        if (!url.trim()) { reset(); return }
+        urlDebounceRef.current = setTimeout(() => fetchMeta(url), 800)
+        return () => { if (urlDebounceRef.current) clearTimeout(urlDebounceRef.current) }
     }, [url])
 
     const amountNum = parseFloat(amount)
-    const orderedMinutes =
-        selectedQueue && !isNaN(amountNum) && amountNum > 0
-            ? amountNum / selectedQueue.pricePerMinute
-            : 0
-
-    const totalMinutes = meta?.durationMinutes
-        ? meta.durationMinutes
-        : parseFloat(durationInput) || 0
+    const totalMinutes = parseDuration(durationInput) ?? 0
+    const orderedMinutes = selectedQueue && !isNaN(amountNum) && amountNum > 0
+        ? amountNum / selectedQueue.price_per_minute
+        : 0
 
     const urlError = urlTouched && !url.trim() ? 'YouTube URL is required' : ''
-    
-    const amountError = (() => {
-        if (!amount) { 
-            return ''
-        }
 
-        if (isNaN(amountNum) || amountNum <= 0) {
-            return 'Enter a valid amount'
-        }
-        if (amountNum < minAmount) {
-            return `Minimum is $${minAmount.toFixed(2)}`
-        }
-        
+    const amountError = (() => {
+        if (!amount) return ''
+        if (isNaN(amountNum) || amountNum <= 0) return 'Enter a valid amount'
+        if (amountNum < minAmount) return `Minimum is $${minAmount.toFixed(2)}`
+        if (totalMinutes > 0 && orderedMinutes > totalMinutes)
+            return `Cannot exceed video duration (${formatMinSec(totalMinutes)})`
         return ''
     })()
 
-    const canSubmit = url.trim() && meta && selectedQueue && !amountError && amountNum >= minAmount && totalMinutes != 0
+    const canSubmit =
+        url.trim() &&
+        meta &&
+        selectedQueue &&
+        !amountError &&
+        amountNum >= minAmount &&
+        totalMinutes > 0 &&
+        !submitting
 
     const handleSubmit = async () => {
-        if (!canSubmit || !meta || !selectedQueue) {
-            return
-        }
+        if (!canSubmit || !meta || !selectedQueue) return
 
+        setSubmitting(true)
         setServerError('')
 
         try {
@@ -102,7 +105,7 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
         } catch (err) {
             setServerError(err instanceof Error ? err.message : 'Failed to place order')
         } finally {
-            reset()
+            setSubmitting(false)
         }
     }
 
@@ -118,10 +121,14 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
     }
 
     const handleOverlayClick = (e: React.MouseEvent) => {
-        if (e.target === overlayRef.current) {
-            handleClose()
-        }
+        if (e.target === overlayRef.current) handleClose()
     }
+
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose() }
+        if (isOrderModalOpen) document.addEventListener('keydown', handler)
+        return () => document.removeEventListener('keydown', handler)
+    }, [isOrderModalOpen])
 
     if (!isOrderModalOpen) return null
 
@@ -146,116 +153,107 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
                                 className={`${styles.field_input} ${(urlError || metaError) ? styles.field_input__error : ''} ${meta ? styles.field_input__success : ''}`}
                                 type="text"
                                 placeholder="https://youtube.com/watch?v=..."
-                                value={ url }
+                                value={url}
                                 onChange={(e) => setUrl(e.target.value)}
                                 onBlur={() => setUrlTouched(true)}
                             />
+                            {url && (
+                                <a href={url} target="_blank" rel="noopener noreferrer" className={styles.field_urlopen}>
+                                    <GoLinkExternal size={15} />
+                                </a>
+                            )}
                         </div>
-                        {loading ? <span className={styles.field_hint}>Fetching video info...</span> : null}
-                        {metaError ? <span className={styles.field_error}>{metaError}</span> : null}
-                        {urlError ? <span className={styles.field_error}>{urlError}</span> : null}
+                        {loading && <span className={styles.field_hint}>Fetching video info...</span>}
+                        {metaError && <span className={styles.field_error}>{metaError}</span>}
+                        {urlError && <span className={styles.field_error}>{urlError}</span>}
                     </div>
-                    {meta ? (
+
+                    {/* Video preview */}
+                    {meta && (
                         <div className={styles.preview}>
-                            <img
-                                src={meta.thumbnail}
-                                alt={meta.title}
-                                className={styles.preview_thumb}
-                            />
+                            <img src={meta.thumbnail} alt={meta.title} className={styles.preview_thumb} />
                             <div className={styles.preview_info}>
                                 <span className={styles.preview_title}>{meta.title}</span>
-                                {meta.durationMinutes && (
-                                    <span className={styles.preview_duration}>
-                                        {Math.floor(meta.durationMinutes)}:{String(Math.round((meta.durationMinutes % 1) * 60)).padStart(2, '0')} total
-                                    </span>
-                                )}
                             </div>
                         </div>
-                    ) : null}
+                    )}
 
-                    {meta && !meta.durationMinutes ? (
-                        <div className={styles.field}>
-                            <label className={styles.field_label}>
-                                Video duration <span className={styles.field_label__muted}>(minutes, e.g. 3.5)</span>
-                            </label>
-                            <input
-                                className={styles.field_input}
-                                type="number"
-                                min="0.1"
-                                step="0.1"
-                                placeholder="e.g. 3.5"
-                                value={ durationInput }
-                                onChange={(e) => setDurationInput(e.target.value)}
-                                onWheel={(e) => e.currentTarget.blur()}
-                            />
-                        </div>
-                    ) : null}
+                    {/* Duration */}
+                    <div className={styles.field}>
+                        <label className={styles.field_label}>
+                            Video duration
+                            <span className={styles.field_label__muted}> (MM:SS, e.g. 3:45)</span>
+                        </label>
+                        <input
+                            className={styles.field_input}
+                            type="text"
+                            placeholder="e.g. 3:45"
+                            value={durationInput}
+                            onChange={(e) => setDurationInput(e.target.value)}
+                        />
+                    </div>
 
+                    {/* Queue select */}
                     <div className={styles.field}>
                         <label className={styles.field_label}>Queue</label>
                         <div className={styles.queues}>
-                            {queues.map((queue) => (
+                            {queues.map((q) => (
                                 <button
-                                    key={ queue.id }
-                                    className={`${styles.queues_item} ${selectedQueueId === queue.id ? styles.queues_item__active : ''}`}
-                                    onClick={() => {
-                                        setSelectedQueueId(queue.id)
-                                        setAmount('')
-                                    }}
+                                    key={q.id}
+                                    className={`${styles.queues_item} ${selectedQueueId === q.id ? styles.queues_item__active : ''}`}
+                                    onClick={() => { setSelectedQueueId(q.id); setAmount('') }}
                                 >
-                                    <span className={styles.queues_item_label}>{queue.label}</span>
+                                    <span className={styles.queues_item_label}>{q.label}</span>
                                     <span className={styles.queues_item_price}>
-                                        ${queue.pricePerMinute}<span className={styles.queues_item_unit}>/min</span>
+                                        ${q.price_per_minute}
+                                        <span className={styles.queues_item_unit}>/min</span>
                                     </span>
                                 </button>
                             ))}
                         </div>
                     </div>
 
+                    {/* Amount */}
                     <div className={styles.field}>
                         <label className={styles.field_label}>
                             Amount ($)
-                            {selectedQueue ? (
+                            {selectedQueue && (
                                 <span className={styles.field_label__muted}>
-                                    {' '}— min ${selectedQueue.pricePerMinute.toFixed(2)}
+                                    {' '}— min ${selectedQueue.price_per_minute.toFixed(2)}
                                 </span>
-                            ) : null}
+                            )}
                         </label>
                         <input
                             className={`${styles.field_input} ${amountError ? styles.field_input__error : ''}`}
                             type="number"
-                            min={ minAmount }
+                            min={minAmount}
                             step="0.01"
                             placeholder={`$${minAmount.toFixed(2)}`}
-                            value={ amount }
+                            value={amount}
                             onChange={(e) => setAmount(e.target.value)}
-                            onWheel={(e) => e.currentTarget.blur()}
-                            disabled={ !selectedQueue }
+                            disabled={!selectedQueue}
                         />
-                        {amountError ? <span className={styles.field_error}>{amountError}</span> : null}
+                        {amountError && <span className={styles.field_error}>{amountError}</span>}
 
-                        {orderedMinutes > 0 && !amountError ? (
+                        {orderedMinutes > 0 && !amountError && (
                             <div className={styles.calc}>
                                 <span className={styles.calc_item}>
                                     <span className={styles.calc_label}>Ordered</span>
-                                    <span className={styles.calc_value}>
-                                        {Math.floor(orderedMinutes)}:{String(Math.round((orderedMinutes % 1) * 60)).padStart(2, '0')} min
-                                    </span>
+                                    <span className={styles.calc_value}>{formatMinSec(orderedMinutes)} min</span>
                                 </span>
-                                {totalMinutes > 0 ? (
+                                {totalMinutes > 0 && (
                                     <span className={styles.calc_item}>
                                         <span className={styles.calc_label}>of total</span>
-                                        <span className={styles.calc_value}>
-                                            {Math.floor(totalMinutes)}:{String(totalMinutes).split(".")[1] || "00"} min
-                                        </span>
+                                        <span className={styles.calc_value}>{formatMinSec(totalMinutes)} min</span>
                                     </span>
-                                ) : null}
+                                )}
                             </div>
-                        ) : null}
+                        )}
                     </div>
-                    {serverError ? (
+
+                    {serverError && (
                         <span className={styles.field_error}>{serverError}</span>
-                    ) : null}
+                    )}
                 </div>
 
                 <div className={styles.modal_footer}>
@@ -264,10 +262,10 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
                     </button>
                     <button
                         className={styles.modal_submit}
-                        onClick={ handleSubmit }
-                        disabled={ !canSubmit }
+                        onClick={handleSubmit}
+                        disabled={!canSubmit}
                     >
-                        Order the Video
+                        {submitting ? 'Placing...' : `Place Order — $${amount || '0.00'}`}
                     </button>
                 </div>
             </div>

@@ -1,36 +1,38 @@
+export type DashboardMode = 'viewer' | 'streamer'
+
 export interface IUser {
-    id: number;
-    username: string;
+    id: string
+    username: string
 }
 
 export interface IQueue {
-    id: number;
-    label: string;
-    pricePerMinute: number;
+    id: number
+    label: string
+    price_per_minute: number
+    pricePerMinute?: number
 }
 
 export interface IVideoOrder {
-    id: number;
-    youtubeUrl: string;
-    title: string;
-    thumbnail: string;
-    orderedMinutes: number;
-    totalMinutes: number;
-    queueId: number;
-    viewer?: IViewer;
-    viewerUsername?: string;
+    id: number
+    youtube_url: string
+    title: string
+    thumbnail: string
+    ordered_minutes: number
+    total_minutes: number
+    queue_id: number
+    queueId?: number
+    status: 'pending' | 'watching' | 'done'
+    viewer?: { id: string; username: string }
+    viewerUsername?: string
 }
 
 export interface IStreamer {
-    id: number;
-    username: string;
-    queues: IQueue[];
-    orders: IVideoOrder[];
+    id: string
+    username: string
+    queues: (IQueue & { video_orders: IVideoOrder[] })[]
 }
 
 export interface IViewer {
-    id: number;
-    username: string;
+    id: string
+    username: string
 }
-
-export type DashboardMode = "viewer" | "streamer";
