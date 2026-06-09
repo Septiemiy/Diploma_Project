@@ -33,7 +33,6 @@ const VideoCard = ({ order, queue, isOwner = false, onRemove, onExtend }: Props)
 
     return (
         <div className={styles.card}>
-            <div className={styles.card_main}>
                 <a href={url} target="_blank" rel="noopener noreferrer" className={styles.card_thumb}>
                     <img src={order.thumbnail} alt={order.title} className={styles.card_thumb_img} />
                     <GoLinkExternal size={14} className={styles.card_thumb_icon} />
@@ -80,7 +79,6 @@ const VideoCard = ({ order, queue, isOwner = false, onRemove, onExtend }: Props)
                         </div>
                     </div>
                 </div>
-            </div>
 
             {isExtending && (
                 <ExtendForm

@@ -62,7 +62,6 @@ export const useRealtime = ({
                 onQueueDeleted?.({ queueId: payload.old.id })
             })
 
-            // Замовлення — без фільтру
             .on('postgres_changes', {
                 event: 'INSERT',
                 schema: 'public',

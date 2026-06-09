@@ -51,7 +51,6 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
     const selectedQueue = queues.find((q) => q.id === selectedQueueId) ?? null
     const minAmount = selectedQueue ? selectedQueue.price_per_minute : 0
 
-    // Автофетч при вводі URL
     useEffect(() => {
         if (urlDebounceRef.current) clearTimeout(urlDebounceRef.current)
         if (!url.trim()) { reset(); return }
@@ -100,7 +99,6 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
                 orderedMinutes: parseFloat(orderedMinutes.toFixed(2)),
                 totalMinutes,
             })
-            onSubmit(newOrder)
             handleClose()
         } catch (err) {
             setServerError(err instanceof Error ? err.message : 'Failed to place order')
@@ -168,7 +166,6 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
                         {urlError && <span className={styles.field_error}>{urlError}</span>}
                     </div>
 
-                    {/* Video preview */}
                     {meta && (
                         <div className={styles.preview}>
                             <img src={meta.thumbnail} alt={meta.title} className={styles.preview_thumb} />
@@ -178,7 +175,6 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
                         </div>
                     )}
 
-                    {/* Duration */}
                     <div className={styles.field}>
                         <label className={styles.field_label}>
                             Video duration
@@ -193,7 +189,6 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
                         />
                     </div>
 
-                    {/* Queue select */}
                     <div className={styles.field}>
                         <label className={styles.field_label}>Queue</label>
                         <div className={styles.queues}>
@@ -213,7 +208,6 @@ const OrderModal = ({ queues, onSubmit }: Props) => {
                         </div>
                     </div>
 
-                    {/* Amount */}
                     <div className={styles.field}>
                         <label className={styles.field_label}>
                             Amount ($)
