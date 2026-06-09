@@ -47,7 +47,7 @@ const Header = () => {
                         Sign In
                     </button>
                     <button
-                        onClick={() => navigate('/register')}
+                        onClick={() => navigate('/registration')}
                         className={styles.header_actions_signup}
                     >
                         Get Started
