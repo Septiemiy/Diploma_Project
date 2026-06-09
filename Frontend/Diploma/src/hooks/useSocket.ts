@@ -12,22 +12,63 @@ interface UseRealtimeProps {
     onQueueDeleted?: (data: { queueId: number }) => void
 }
 
-export const useRealtime = ({ streamerId, onOrderCreated, onOrderExtended, onOrderRemoved, onQueueCreated, onQueueUpdated, onQueueDeleted,
+export const useRealtime = ({
+    streamerId,
+    onOrderCreated,
+    onOrderExtended,
+    onOrderRemoved,
+    onQueueCreated,
+    onQueueUpdated,
+    onQueueDeleted,
 }: UseRealtimeProps) => {
     const channelRef = useRef<RealtimeChannel | null>(null)
 
     useEffect(() => {
         if (!streamerId) return
 
+        console.log('useRealtime: subscribing to streamer-', streamerId)
+
         const channel = supabase
-            .channel(`streamer-${streamerId}`)
+            .channel(`streamer-${streamerId}-${Date.now()}`)
 
             .on('postgres_changes', {
                 event: 'INSERT',
                 schema: 'public',
-                table: 'video_orders',
-                filter: `queue_id=in.(select id from queues where streamer_id=eq.${streamerId})`,
+                table: 'queues',
             }, (payload) => {
+                console.log('queue INSERT:', payload.new)
+                if (payload.new.streamer_id === streamerId) {
+                    onQueueCreated?.(payload.new)
+                }
+            })
+
+            .on('postgres_changes', {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'queues',
+            }, (payload) => {
+                console.log('queue UPDATE:', payload.new)
+                if (payload.new.streamer_id === streamerId) {
+                    onQueueUpdated?.(payload.new)
+                }
+            })
+
+            .on('postgres_changes', {
+                event: 'DELETE',
+                schema: 'public',
+                table: 'queues',
+            }, (payload) => {
+                console.log('queue DELETE:', payload.old)
+                onQueueDeleted?.({ queueId: payload.old.id })
+            })
+
+            // Замовлення — без фільтру
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'video_orders',
+            }, (payload) => {
+                console.log('order INSERT:', payload.new)
                 onOrderCreated?.(payload.new)
             })
 
@@ -36,6 +77,7 @@ export const useRealtime = ({ streamerId, onOrderCreated, onOrderExtended, onOrd
                 schema: 'public',
                 table: 'video_orders',
             }, (payload) => {
+                console.log('order UPDATE:', payload.new)
                 onOrderExtended?.({
                     orderId: payload.new.id,
                     newMinutes: payload.new.ordered_minutes,
@@ -47,40 +89,18 @@ export const useRealtime = ({ streamerId, onOrderCreated, onOrderExtended, onOrd
                 schema: 'public',
                 table: 'video_orders',
             }, (payload) => {
+                console.log('order DELETE:', payload.old)
                 onOrderRemoved?.({ orderId: payload.old.id })
             })
 
-            .on('postgres_changes', {
-                event: 'INSERT',
-                schema: 'public',
-                table: 'queues',
-                filter: `streamer_id=eq.${streamerId}`,
-            }, (payload) => {
-                onQueueCreated?.(payload.new)
+            .subscribe((status) => {
+                console.log('Realtime status:', status)
             })
-
-            .on('postgres_changes', {
-                event: 'UPDATE',
-                schema: 'public',
-                table: 'queues',
-                filter: `streamer_id=eq.${streamerId}`,
-            }, (payload) => {
-                onQueueUpdated?.(payload.new)
-            })
-
-            .on('postgres_changes', {
-                event: 'DELETE',
-                schema: 'public',
-                table: 'queues',
-            }, (payload) => {
-                onQueueDeleted?.({ queueId: payload.old.id })
-            })
-
-            .subscribe()
 
         channelRef.current = channel
 
         return () => {
+            console.log('useRealtime: unsubscribing')
             supabase.removeChannel(channel)
         }
     }, [streamerId])
